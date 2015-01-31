@@ -1,5 +1,5 @@
-Macaroons
-=========
+Macaroons for Rust
+==================
 [![Build Status](https://travis-ci.org/cryptosphere/rust-macaroons.svg?branch=master)](https://travis-ci.org/cryptosphere/rust-macaroons)
 
 Macaroons Are Better Than Cookies!
