@@ -1,5 +1,10 @@
 [package]
-
-name = "macaroons"
-version = "0.0.0"
-authors = ["Tony Arcieri <bascule@gmail.com>"]
+name        = "macaroons"
+description = "Bearer credentials with caveats for distributed authorization"
+homepage    = "https://github.com/cryptosphere/rust-macaroons"
+repository  = "https://github.com/cryptosphere/rust-macaroons.git"
+readme      = "README.md"
+keywords    = ["cookies", "authorization", "credentials"]
+license     = "MIT"
+version     = "0.0.0"
+authors     = ["Tony Arcieri <bascule@gmail.com>"]
