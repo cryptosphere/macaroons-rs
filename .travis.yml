@@ -1,0 +1,4 @@
+language: rust
+
+notifications:
+  irc: 'irc.freenode.org#cryptosphere'
