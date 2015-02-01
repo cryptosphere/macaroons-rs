@@ -3,4 +3,5 @@
 
 pub mod macaroons {
   pub mod token;
+  pub mod caveat;
 }

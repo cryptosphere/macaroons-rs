@@ -1,11 +1,13 @@
+pub use macaroons::caveat::*;
+
 pub const SIGNATUREBYTES: usize = 32;
 
 #[derive(Copy)]
 pub struct Signature(pub [u8; SIGNATUREBYTES]);
 
-struct Token {
+pub struct Token {
   identifier: Vec<u8>,
   location: Vec<u8>,
-  // caveats: TBD;
+  caveats: Vec<Caveat>,
   signature: Signature
 }
