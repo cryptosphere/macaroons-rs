@@ -8,13 +8,21 @@ const EXAMPLE_KEY: &'static str = "this is our super secret key; only we should 
 const EXAMPLE_ID:  &'static str = "we used our secret key";
 const EXAMPLE_URI: &'static str = "http://mybank/";
 
+fn example_key() -> Vec<u8> {
+  String::from_str(EXAMPLE_KEY).into_bytes()
+}
+
+fn example_id() -> Vec<u8> {
+  String::from_str(EXAMPLE_ID).into_bytes()
+}
+
+fn example_uri() -> Vec<u8> {
+  String::from_str(EXAMPLE_URI).into_bytes()
+}
+
 #[test]
 fn empty_macaroon_signature() {
-  let key        = String::from_str(EXAMPLE_KEY).into_bytes();
-  let identifier = String::from_str(EXAMPLE_ID).into_bytes();
-  let location   = String::from_str(EXAMPLE_URI).into_bytes();
-
-  let token = Token::new(key, identifier, location);
+  let token = Token::new(example_key(), example_id(), example_uri());
 
   let expected_tag = [0xe3,0xd9,0xe0,0x29,0x08,0x52,0x6c,0x4c
                      ,0x00,0x39,0xae,0x15,0x11,0x41,0x15,0xd9
@@ -27,11 +35,7 @@ fn empty_macaroon_signature() {
 
 #[test]
 fn signature_with_first_party_caveat() {
-  let key        = String::from_str(EXAMPLE_KEY).into_bytes();
-  let identifier = String::from_str(EXAMPLE_ID).into_bytes();
-  let location   = String::from_str(EXAMPLE_URI).into_bytes();
-
-  let token     = Token::new(key, identifier, location);
+  let token = Token::new(example_key(), example_id(), example_uri());
   let predicate = String::from_str("test = caveat").into_bytes();
   let new_token = token.add_caveat(Caveat::new(Predicate(predicate)));
 
