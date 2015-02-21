@@ -1,4 +1,3 @@
-pub use macaroons::{KEYBYTES, SIGNATUREBYTES};
 pub use macaroons::caveat::Caveat;
 pub use sodiumoxide::crypto::auth::hmacsha256::{Key, Tag};
 use sodiumoxide::crypto::auth::hmacsha256::authenticate;
