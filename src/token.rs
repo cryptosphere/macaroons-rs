@@ -1,4 +1,4 @@
-pub use caveat::Caveat;
+pub use caveat::{Caveat, Predicate};
 pub use sodiumoxide::crypto::auth::hmacsha256::{Key, Tag};
 use sodiumoxide::crypto::auth::hmacsha256::authenticate;
 
@@ -31,9 +31,17 @@ impl Token {
 
   pub fn add_caveat(&self, caveat: Caveat) -> Token {
     let Tag(key_bytes) = self.tag;
-    let tag = authenticate(&caveat.caveat_id, &Key(key_bytes));
+    let Predicate(predicate_bytes) = caveat.predicate.clone();
+    let tag = authenticate(&predicate_bytes, &Key(key_bytes));
 
-    let caveats = vec![caveat];
+    let caveats = match self.caveats {
+      Some(ref cavs) => {
+        let mut new_cavs = cavs.to_vec();
+        new_cavs.push(caveat);
+        new_cavs
+      },
+      None => vec![caveat]
+    };
 
     Token {
       identifier: self.identifier.clone(),

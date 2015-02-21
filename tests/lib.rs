@@ -2,7 +2,7 @@
 
 extern crate macaroons;
 pub use macaroons::token::{Token, Tag};
-pub use macaroons::caveat::Caveat;
+pub use macaroons::caveat::{Caveat, Predicate};
 
 const EXAMPLE_KEY: &'static str = "this is our super secret key; only we should know it";
 const EXAMPLE_ID:  &'static str = "we used our secret key";
@@ -33,7 +33,7 @@ fn signature_with_first_party_caveat() {
 
   let token     = Token::new(key, identifier, location);
   let predicate = String::from_str("test = caveat").into_bytes();
-  let new_token = token.add_caveat(Caveat::new(predicate));
+  let new_token = token.add_caveat(Caveat::new(Predicate(predicate)));
 
   let expected_tag = [0x19,0x7b,0xac,0x7a,0x04,0x4a,0xf3,0x33
                      ,0x32,0x86,0x5b,0x92,0x66,0xe2,0x6d,0x49
