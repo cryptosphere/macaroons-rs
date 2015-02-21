@@ -3,7 +3,5 @@
 
 extern crate sodiumoxide;
 
-pub mod macaroons {
-  pub mod token;
-  pub mod caveat;
-}
+pub mod token;
+pub mod caveat;
