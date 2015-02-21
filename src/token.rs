@@ -28,4 +28,18 @@ impl Token {
       tag:        tag
     }
   }
+
+  pub fn add_caveat(&self, caveat: Caveat) -> Token {
+    let Tag(key_bytes) = self.tag;
+    let tag = authenticate(&caveat.caveat_id, &Key(key_bytes));
+
+    let caveats = vec![caveat];
+
+    Token {
+      identifier: self.identifier.clone(),
+      location:   self.location.clone(),
+      caveats:    Some(caveats),
+      tag:        tag
+    }
+  }
 }
