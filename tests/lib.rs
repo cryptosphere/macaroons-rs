@@ -1,11 +1,17 @@
+#![feature(collections)]
+
 extern crate macaroons;
 pub use macaroons::token::{Token, Tag};
 
+const EXAMPLE_KEY: &'static str = "this is our super secret key; only we should know it";
+const EXAMPLE_ID:  &'static str = "we used our secret key";
+const EXAMPLE_URI: &'static str = "http://mybank/";
+
 #[test]
 fn empty_macaroon_signature() {
-  let key        = String::from_str("this is our super secret key; only we should know it").into_bytes();
-  let identifier = String::from_str("we used our secret key").into_bytes();
-  let location   = String::from_str("http://mybank/").into_bytes();
+  let key        = String::from_str(EXAMPLE_KEY).into_bytes();
+  let identifier = String::from_str(EXAMPLE_ID).into_bytes();
+  let location   = String::from_str(EXAMPLE_URI).into_bytes();
 
   let token = Token::new(key, identifier, location);
 
