@@ -4,20 +4,20 @@ extern crate macaroons;
 pub use macaroons::token::{Token, Tag};
 pub use macaroons::caveat::{Caveat, Predicate};
 
-const EXAMPLE_KEY: &'static str = "this is our super secret key; only we should know it";
-const EXAMPLE_ID:  &'static str = "we used our secret key";
-const EXAMPLE_URI: &'static str = "http://mybank/";
-
 fn example_key() -> Vec<u8> {
-  String::from_str(EXAMPLE_KEY).into_bytes()
+  String::from_str("this is our super secret key; only we should know it").into_bytes()
 }
 
 fn example_id() -> Vec<u8> {
-  String::from_str(EXAMPLE_ID).into_bytes()
+  String::from_str("we used our secret key").into_bytes()
 }
 
 fn example_uri() -> Vec<u8> {
-  String::from_str(EXAMPLE_URI).into_bytes()
+  String::from_str("http://mybank/").into_bytes()
+}
+
+fn example_predicate() -> Predicate {
+  Predicate(String::from_str("test = caveat").into_bytes())
 }
 
 #[test]
@@ -36,8 +36,7 @@ fn empty_macaroon_signature() {
 #[test]
 fn signature_with_first_party_caveat() {
   let token = Token::new(example_key(), example_id(), example_uri());
-  let predicate = String::from_str("test = caveat").into_bytes();
-  let new_token = token.add_caveat(Caveat::new(Predicate(predicate)));
+  let new_token = token.add_caveat(Caveat::new(example_predicate()));
 
   let expected_tag = [0x19,0x7b,0xac,0x7a,0x04,0x4a,0xf3,0x33
                      ,0x32,0x86,0x5b,0x92,0x66,0xe2,0x6d,0x49
@@ -46,4 +45,13 @@ fn signature_with_first_party_caveat() {
 
   let Tag(actual_tag) = new_token.tag;
   assert_eq!(expected_tag, actual_tag)
+}
+
+#[test]
+fn binary_serialization() {
+  let token = Token::new(example_key(), example_id(), example_uri());
+  let new_token = token.add_caveat(Caveat::new(example_predicate()));
+
+  let expected_macaroon = String::from_str("MDAxY2xvY2F0aW9uIGh0dHA6Ly9teWJhbmsvCjAwMjZpZGVudGlmaWVyIHdlIHVzZWQgb3VyIHNlY3JldCBrZXkKMDAxNmNpZCB0ZXN0ID0gY2F2ZWF0CjAwMmZzaWduYXR1cmUgGXusegRK8zMyhluSZuJtSTvdZopmDkTYjOGpmMI9vWcK").into_bytes();
+  assert_eq!(expected_macaroon, new_token.serialize());
 }
