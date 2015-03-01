@@ -9,6 +9,8 @@ that must hold for a particular credential to be authorized. Using neat crypto
 tricks, anyone holding a Macaroon can add more caveats to a Macaroon, but once
 caveats are added they cannot be removed.
 
+http://macaroons.io
+
 --
 
 Interested in Macaroons? Join the Macaroons Google Group:
