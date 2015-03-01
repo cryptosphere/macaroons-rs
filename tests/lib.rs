@@ -1,7 +1,7 @@
 #![feature(collections)]
 
 extern crate macaroons;
-pub use macaroons::token::{Token, Tag};
+pub use macaroons::{Token, Tag};
 pub use macaroons::caveat::{Caveat, Predicate};
 
 fn example_key() -> Vec<u8> {
