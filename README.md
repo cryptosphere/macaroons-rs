@@ -17,7 +17,7 @@ https://groups.google.com/forum/#!forum/macaroons
 
 You can also join by email by sending an email message here:
 
-[macaroons+subscribe@googlegroups.com][macaroons+subscribe@googlegroups.com]
+[macaroons+subscribe@googlegroups.com](mailto:macaroons+subscribe@googlegroups.com)
 
 We're also on IRC at #cryptosphere on irc.freenode.net.
 
