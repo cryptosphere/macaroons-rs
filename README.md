@@ -11,18 +11,6 @@ caveats are added they cannot be removed.
 
 http://macaroons.io
 
---
-
-Interested in Macaroons? Join the Macaroons Google Group:
-
-https://groups.google.com/forum/#!forum/macaroons
-
-You can also join by email by sending an email message here:
-
-[macaroons+subscribe@googlegroups.com](mailto:macaroons+subscribe@googlegroups.com)
-
-We're also on IRC at #cryptosphere on irc.freenode.net.
-
 ### Is it any good?
 
 [Yes.](http://news.ycombinator.com/item?id=3067434)
@@ -45,6 +33,18 @@ The following features need to be implemented for this library to be useful:
 * Deserializing base64url-encoded Macaroons
 * Verifying Macaroons
 * Third-party caveats
+
+## Help and Discussion
+
+Interested in Macaroons? Join the Macaroons Google Group:
+
+https://groups.google.com/forum/#!forum/macaroons
+
+You can also join by email by sending an email message here:
+
+[macaroons+subscribe@googlegroups.com](mailto:macaroons+subscribe@googlegroups.com)
+
+We're also on IRC at #cryptosphere on irc.freenode.net.
 
 ## Usage
 
