@@ -9,6 +9,9 @@ const KEY_GENERATOR: [u8; 32] = [0x6d,0x61,0x63,0x61,0x72,0x6f,0x6f,0x6e
                                 ,0x6e,0x65,0x72,0x61,0x74,0x6f,0x72,0x00
                                 ,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00];
 
+const PACKET_PREFIX_LENGTH: usize = 4;
+const MAX_PACKET_LENGTH:    usize = 65535;
+
 pub struct Token {
   pub identifier: Vec<u8>,
   pub location:   Vec<u8>,
@@ -52,6 +55,31 @@ impl Token {
   }
 
   pub fn serialize(&self) -> Vec<u8> {
-    String::from_str("MDAxY2xvY2F0aW9uIGh0dHA6Ly9teWJhbmsvCjAwMjZpZGVudGlmaWVyIHdlIHVzZWQgb3VyIHNlY3JldCBrZXkKMDAxNmNpZCB0ZXN0ID0gY2F2ZWF0CjAwMmZzaWduYXR1cmUgGXusegRK8zMyhluSZuJtSTvdZopmDkTYjOGpmMI9vWcK").into_bytes()
+    let mut result: Vec<u8> = Vec::new();
+
+    Token::packetize(&mut result, "location",   &self.location);
+    Token::packetize(&mut result, "identifier", &self.identifier);
+
+    let Tag(signature_bytes) = self.tag;
+    let mut signature_vec = Vec::new();
+    signature_vec.push_all(&signature_bytes);
+
+    Token::packetize(&mut result, "signature", &signature_vec);
+
+    result
+  }
+
+  fn packetize(result: &mut Vec<u8>, field: &str, value: &Vec<u8>) {
+    let field_bytes: Vec<u8> = String::from_str(field).into_bytes();
+    let packet_length = PACKET_PREFIX_LENGTH + field_bytes.len() + value.len() + 2;
+
+    if packet_length > MAX_PACKET_LENGTH {
+      panic!("packet too large to serialize");
+    }
+
+    let mut pkt_line = format!("{:04x}{} ", packet_length, field).into_bytes();
+    result.append(&mut pkt_line);
+    result.append(&mut value.clone());
+    result.push('\n' as u8);
   }
 }
