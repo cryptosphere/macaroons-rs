@@ -42,7 +42,8 @@ The following features have been implemented:
 
 The following features need to be implemented for this library to be useful:
 
-* Deserializing and verifying Macaroons
+* Deserializing base64url-encoded Macaroons
+* Verifying Macaroons
 * Third-party caveats
 
 ## Usage
