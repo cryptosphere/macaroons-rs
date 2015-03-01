@@ -2,6 +2,8 @@ pub use caveat::{Caveat, Predicate};
 pub use sodiumoxide::crypto::auth::hmacsha256::{Key, Tag};
 use sodiumoxide::crypto::auth::hmacsha256::authenticate;
 
+use serialize::base64::{self, ToBase64};
+
 // Macaroons personalize the HMAC key using this string
 // "macaroons-key-generator" padded to 32-bytes with zeroes
 const KEY_GENERATOR: [u8; 32] = [0x6d,0x61,0x63,0x61,0x72,0x6f,0x6f,0x6e
@@ -38,10 +40,10 @@ impl Token {
     let tag = authenticate(&predicate_bytes, &Key(key_bytes));
 
     let caveats = match self.caveats {
-      Some(ref cavs) => {
-        let mut new_cavs = cavs.to_vec();
-        new_cavs.push(caveat);
-        new_cavs
+      Some(ref old_caveats) => {
+        let mut new_caveats = old_caveats.to_vec();
+        new_caveats.push(caveat);
+        new_caveats
       },
       None => vec![caveat]
     };
@@ -60,13 +62,23 @@ impl Token {
     Token::packetize(&mut result, "location",   &self.location);
     Token::packetize(&mut result, "identifier", &self.identifier);
 
+    match self.caveats {
+      None => (),
+      Some(ref caveats) => {
+        for caveat in caveats.iter() {
+          let Predicate(predicate_bytes) = caveat.predicate.clone();
+          Token::packetize(&mut result, "cid", &predicate_bytes);
+        }
+      }
+    }
+
     let Tag(signature_bytes) = self.tag;
     let mut signature_vec = Vec::new();
     signature_vec.push_all(&signature_bytes);
 
     Token::packetize(&mut result, "signature", &signature_vec);
 
-    result
+    result.to_base64(base64::URL_SAFE).into_bytes()
   }
 
   fn packetize(result: &mut Vec<u8>, field: &str, value: &Vec<u8>) {
