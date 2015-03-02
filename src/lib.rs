@@ -66,6 +66,7 @@ impl Token {
   }
 
   pub fn serialize(&self) -> Vec<u8> {
+    // TODO: estimate capacity and use Vec::with_capacity
     let mut result: Vec<u8> = Vec::new();
 
     Token::packetize(&mut result, "location",   &self.location);
