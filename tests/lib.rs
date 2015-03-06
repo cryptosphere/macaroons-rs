@@ -20,6 +20,10 @@ fn example_predicate() -> Predicate {
   Predicate(String::from_str("test = caveat").into_bytes())
 }
 
+fn example_macaroon() -> Vec<u8> {
+  String::from_str("MDAxY2xvY2F0aW9uIGh0dHA6Ly9teWJhbmsvCjAwMjZpZGVudGlmaWVyIHdlIHVzZWQgb3VyIHNlY3JldCBrZXkKMDAxNmNpZCB0ZXN0ID0gY2F2ZWF0CjAwMmZzaWduYXR1cmUgGXusegRK8zMyhluSZuJtSTvdZopmDkTYjOGpmMI9vWcK").into_bytes()
+}
+
 #[test]
 fn empty_macaroon_signature() {
   let token = Token::new(example_key(), example_id(), example_uri());
@@ -52,6 +56,5 @@ fn binary_serialization() {
   let token = Token::new(example_key(), example_id(), example_uri());
   let new_token = token.add_caveat(Caveat::new(example_predicate()));
 
-  let expected_macaroon = String::from_str("MDAxY2xvY2F0aW9uIGh0dHA6Ly9teWJhbmsvCjAwMjZpZGVudGlmaWVyIHdlIHVzZWQgb3VyIHNlY3JldCBrZXkKMDAxNmNpZCB0ZXN0ID0gY2F2ZWF0CjAwMmZzaWduYXR1cmUgGXusegRK8zMyhluSZuJtSTvdZopmDkTYjOGpmMI9vWcK").into_bytes();
-  assert_eq!(expected_macaroon, new_token.serialize());
+  assert_eq!(example_macaroon(), new_token.serialize());
 }
