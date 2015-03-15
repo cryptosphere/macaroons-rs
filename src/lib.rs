@@ -1,6 +1,7 @@
 #![crate_name = "macaroons"]
 #![crate_type = "lib"]
 
+#![feature(core)]
 #![feature(collections)]
 
 pub mod caveat;
@@ -11,7 +12,7 @@ extern crate sodiumoxide;
 use sodiumoxide::crypto::auth::hmacsha256::authenticate;
 
 extern crate "rustc-serialize" as serialize;
-use serialize::base64::{self, ToBase64};
+use serialize::base64::{self, FromBase64, ToBase64};
 
 // Macaroons personalize the HMAC key using this string
 // "macaroons-key-generator" padded to 32-bytes with zeroes
@@ -24,8 +25,8 @@ const PACKET_PREFIX_LENGTH: usize = 4;
 const MAX_PACKET_LENGTH:    usize = 65535;
 
 pub struct Token {
-  pub identifier: Vec<u8>,
   pub location:   Vec<u8>,
+  pub identifier: Vec<u8>,
   pub caveats:    Option<Vec<Caveat>>,
   pub tag:        Tag
 }
@@ -41,6 +42,35 @@ impl Token {
       caveats:    None,
       tag:        tag
     }
+  }
+
+  pub fn deserialize(macaroon: Vec<u8>) -> Vec<u8> {
+    let mut location:   Option<Vec<u8>> = None;
+    //let mut identifier: Option<Vec<u8>> = None;
+
+    let macaroon_bytes = macaroon.as_slice().from_base64().unwrap();
+
+    let index: usize = 0;
+
+    let length_str = std::str::from_utf8(&macaroon_bytes[index .. PACKET_PREFIX_LENGTH]).unwrap();
+    let packet_length: usize = std::num::from_str_radix(length_str, 16).unwrap();
+
+    let mut packet = macaroon_bytes[index + PACKET_PREFIX_LENGTH .. packet_length].to_vec();
+
+    let pos = packet.iter().position(|&byte| byte == 32).unwrap();
+    let mut value = packet.split_off(pos);
+    value.remove(0);
+
+    // TODO: ensure this is a newline
+    value.pop();
+
+    match std::str::from_utf8(packet.as_slice()).unwrap() {
+      "location"   => { location = Some(value) },
+      //"identifier" => { identifier = Some(value) },
+      _ => ()
+    }
+
+    location.unwrap()
   }
 
   pub fn add_caveat(&self, caveat: Caveat) -> Token {
