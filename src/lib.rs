@@ -31,6 +31,11 @@ pub struct Token {
   pub tag:        Tag
 }
 
+struct Packet {
+  pub field: Vec<u8>,
+  pub value: Vec<u8>
+}
+
 impl Token {
   pub fn new(key: Vec<u8>, identifier: Vec<u8>, location: Vec<u8>) -> Token {
     let Tag(personalized_key) = authenticate(&key, &Key(KEY_GENERATOR));
@@ -48,14 +53,23 @@ impl Token {
     let mut location:   Option<Vec<u8>> = None;
     //let mut identifier: Option<Vec<u8>> = None;
 
-    let macaroon_bytes = macaroon.as_slice().from_base64().unwrap();
+    let mut token_data = macaroon.as_slice().from_base64().unwrap();
+    let packet = Token::depacketize(&mut token_data);
 
-    let index: usize = 0;
+    match std::str::from_utf8(packet.field.as_slice()).unwrap() {
+      "location"   => { location = Some(packet.value) },
+      //"identifier" => { identifier = Some(value) },
+      _ => ()
+    }
 
-    let length_str = std::str::from_utf8(&macaroon_bytes[index .. PACKET_PREFIX_LENGTH]).unwrap();
+    location.unwrap()
+  }
+
+  fn depacketize(data: &mut Vec<u8>) -> Packet {
+    let length_str = std::str::from_utf8(&data[0 .. PACKET_PREFIX_LENGTH]).unwrap();
     let packet_length: usize = std::num::from_str_radix(length_str, 16).unwrap();
 
-    let mut packet = macaroon_bytes[index + PACKET_PREFIX_LENGTH .. packet_length].to_vec();
+    let mut packet = data[PACKET_PREFIX_LENGTH .. packet_length].to_vec();
 
     let pos = packet.iter().position(|&byte| byte == 32).unwrap();
     let mut value = packet.split_off(pos);
@@ -64,13 +78,7 @@ impl Token {
     // TODO: ensure this is a newline
     value.pop();
 
-    match std::str::from_utf8(packet.as_slice()).unwrap() {
-      "location"   => { location = Some(value) },
-      //"identifier" => { identifier = Some(value) },
-      _ => ()
-    }
-
-    location.unwrap()
+    Packet { field: packet, value: value }
   }
 
   pub fn add_caveat(&self, caveat: Caveat) -> Token {
