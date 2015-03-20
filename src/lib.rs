@@ -56,8 +56,8 @@ impl Token {
     let mut token_data = macaroon.as_slice().from_base64().unwrap();
     let packet = Token::depacketize(&mut token_data);
 
-    match std::str::from_utf8(packet.field.as_slice()).unwrap() {
-      "location"   => { location = Some(packet.value) },
+    match packet.field.as_slice() {
+      b"location" => { location = Some(packet.value) },
       //"identifier" => { identifier = Some(value) },
       _ => ()
     }
