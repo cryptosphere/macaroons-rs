@@ -54,6 +54,7 @@ impl Token {
   pub fn deserialize(macaroon: Vec<u8>) -> Token {
     let mut location:   Option<Vec<u8>> = None;
     let mut identifier: Option<Vec<u8>> = None;
+    let mut caveats:    Vec<Caveat>     = Vec::new();
     let mut tag:        Option<Tag>     = None;
 
     let token_data = macaroon.as_slice().from_base64().unwrap();
@@ -66,6 +67,7 @@ impl Token {
       match packet.field.as_slice() {
         b"location"   => { location = Some(packet.value) },
         b"identifier" => { identifier = Some(packet.value) },
+        b"cid"        => { caveats.push(Caveat::new(Predicate(packet.value))) },
         b"signature"  => {
           if packet.value.len() != TAGBYTES {
             panic!("invalid signature length")
@@ -76,18 +78,14 @@ impl Token {
 
           tag = Some(Tag(signature_bytes))
         },
-        // TODO: handle caveats
-        _ => ()
+        _ => { panic!("unrecognized packet type"); }
       }
     }
-
-    println!("location: {:?}", location);
-    println!("identifier: {:?}", identifier);
 
     Token {
       location:   location.unwrap(),
       identifier: identifier.unwrap(),
-      caveats:    None,
+      caveats:    if caveats.is_empty() { None } else { Some(caveats) },
       tag:        tag.unwrap()
     }
   }

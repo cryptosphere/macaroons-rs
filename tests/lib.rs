@@ -63,7 +63,9 @@ fn binary_serialization() {
 fn binary_deserialization() {
   let token = Token::deserialize(example_macaroon());
 
-  // TODO: parse the rest of the token
   assert_eq!(example_uri(), token.location);
   assert_eq!(example_id(),  token.identifier);
+
+  let Tag(actual_tag) = token.tag;
+  assert_eq!(EXPECTED_TAG, actual_tag)
 }
