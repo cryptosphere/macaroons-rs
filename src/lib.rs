@@ -4,9 +4,11 @@
 #![feature(core)]
 #![feature(collections)]
 
+use std::slice::bytes;
+
 pub mod caveat;
 pub use caveat::{Caveat, Predicate};
-pub use sodiumoxide::crypto::auth::hmacsha256::{Key, Tag};
+pub use sodiumoxide::crypto::auth::hmacsha256::{Key, Tag, TAGBYTES};
 
 extern crate sodiumoxide;
 use sodiumoxide::crypto::auth::hmacsha256::authenticate;
@@ -42,43 +44,70 @@ impl Token {
     let tag = authenticate(&identifier, &Key(personalized_key));
 
     Token {
-      identifier: identifier,
       location:   location,
+      identifier: identifier,
       caveats:    None,
       tag:        tag
     }
   }
 
-  pub fn deserialize(macaroon: Vec<u8>) -> Vec<u8> {
+  pub fn deserialize(macaroon: Vec<u8>) -> Token {
     let mut location:   Option<Vec<u8>> = None;
-    //let mut identifier: Option<Vec<u8>> = None;
+    let mut identifier: Option<Vec<u8>> = None;
+    let mut tag:        Option<Tag>     = None;
 
-    let mut token_data = macaroon.as_slice().from_base64().unwrap();
-    let packet = Token::depacketize(&mut token_data);
+    let token_data = macaroon.as_slice().from_base64().unwrap();
+    let mut index: usize = 0;
 
-    match packet.field.as_slice() {
-      b"location" => { location = Some(packet.value) },
-      //"identifier" => { identifier = Some(value) },
-      _ => ()
+    while index < token_data.len() {
+      let (packet, taken) = Token::depacketize(&token_data, index);
+      index += taken;
+
+      match packet.field.as_slice() {
+        b"location"   => { location = Some(packet.value) },
+        b"identifier" => { identifier = Some(packet.value) },
+        b"signature"  => {
+          if packet.value.len() != TAGBYTES {
+            panic!("invalid signature length")
+          }
+
+          let mut signature_bytes = [0u8; TAGBYTES];
+          bytes::copy_memory(&mut signature_bytes, &packet.value[..TAGBYTES]);
+
+          tag = Some(Tag(signature_bytes))
+        },
+        // TODO: handle caveats
+        _ => ()
+      }
     }
 
-    location.unwrap()
+    println!("location: {:?}", location);
+    println!("identifier: {:?}", identifier);
+
+    Token {
+      location:   location.unwrap(),
+      identifier: identifier.unwrap(),
+      caveats:    None,
+      tag:        tag.unwrap()
+    }
   }
 
-  fn depacketize(data: &mut Vec<u8>) -> Packet {
-    let length_str = std::str::from_utf8(&data[0 .. PACKET_PREFIX_LENGTH]).unwrap();
+  fn depacketize(data: &Vec<u8>, index: usize) -> (Packet, usize) {
+    let length_str = std::str::from_utf8(&data[index .. index + PACKET_PREFIX_LENGTH]).unwrap();
     let packet_length: usize = std::num::from_str_radix(length_str, 16).unwrap();
 
-    let mut packet = data[PACKET_PREFIX_LENGTH .. packet_length].to_vec();
+    let mut packet_bytes = data[index + PACKET_PREFIX_LENGTH .. index + packet_length].to_vec();
 
-    let pos = packet.iter().position(|&byte| byte == 32).unwrap();
-    let mut value = packet.split_off(pos);
+    let pos = packet_bytes.iter().position(|&byte| byte == b' ').unwrap();
+    let mut value = packet_bytes.split_off(pos);
     value.remove(0);
 
-    // TODO: ensure this is a newline
-    value.pop();
+    if value.pop().unwrap() != b'\n' {
+      panic!("unexpected character at end of pkt-line");
+    }
 
-    Packet { field: packet, value: value }
+    let packet = Packet { field: packet_bytes, value: value };
+    (packet, packet_length)
   }
 
   pub fn add_caveat(&self, caveat: Caveat) -> Token {

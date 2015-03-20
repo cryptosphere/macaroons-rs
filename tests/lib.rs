@@ -64,5 +64,6 @@ fn binary_deserialization() {
   let token = Token::deserialize(example_macaroon());
 
   // TODO: parse the rest of the token
-  assert_eq!(token, example_uri());
+  assert_eq!(example_uri(), token.location);
+  assert_eq!(example_id(),  token.identifier);
 }
