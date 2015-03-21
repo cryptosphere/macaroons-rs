@@ -1,7 +1,7 @@
 #![feature(collections)]
 
 extern crate macaroons;
-pub use macaroons::{Token, Tag};
+pub use macaroons::token::{Token, Tag};
 pub use macaroons::caveat::{Caveat, Predicate};
 
 const EXPECTED_TAG: [u8; 32] = [0x19,0x7b,0xac,0x7a,0x04,0x4a,0xf3,0x33
