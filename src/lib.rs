@@ -26,7 +26,7 @@ const MAX_PACKET_LENGTH:    usize = 65535;
 pub struct Token {
   pub location:   Vec<u8>,
   pub identifier: Vec<u8>,
-  pub caveats:    Option<Vec<Caveat>>,
+  pub caveats:    Vec<Caveat>,
   pub tag:        Tag
 }
 
@@ -43,7 +43,7 @@ impl Token {
     Token {
       location:   location,
       identifier: identifier,
-      caveats:    None,
+      caveats:    Vec::new(),
       tag:        tag
     }
   }
@@ -82,7 +82,7 @@ impl Token {
     Token {
       location:   location.unwrap(),
       identifier: identifier.unwrap(),
-      caveats:    if caveats.is_empty() { None } else { Some(caveats) },
+      caveats:    caveats,
       tag:        tag.unwrap()
     }
   }
@@ -110,19 +110,13 @@ impl Token {
     let Predicate(predicate_bytes) = caveat.predicate.clone();
     let tag = authenticate(&predicate_bytes, &Key(key_bytes));
 
-    let caveats = match self.caveats {
-      Some(ref old_caveats) => {
-        let mut new_caveats = old_caveats.to_vec();
-        new_caveats.push(caveat);
-        new_caveats
-      },
-      None => vec![caveat]
-    };
+    let mut new_caveats = self.caveats.to_vec();
+    new_caveats.push(caveat);
 
     Token {
       identifier: self.identifier.clone(),
       location:   self.location.clone(),
-      caveats:    Some(caveats),
+      caveats:    new_caveats,
       tag:        tag
     }
   }
@@ -134,14 +128,9 @@ impl Token {
     Token::packetize(&mut result, "location",   &self.location);
     Token::packetize(&mut result, "identifier", &self.identifier);
 
-    match self.caveats {
-      None => (),
-      Some(ref caveats) => {
-        for caveat in caveats.iter() {
-          let Predicate(predicate_bytes) = caveat.predicate.clone();
-          Token::packetize(&mut result, "cid", &predicate_bytes);
-        }
-      }
+    for caveat in self.caveats.iter() {
+      let Predicate(predicate_bytes) = caveat.predicate.clone();
+      Token::packetize(&mut result, "cid", &predicate_bytes);
     }
 
     let Tag(signature_bytes) = self.tag;
