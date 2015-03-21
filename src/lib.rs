@@ -62,12 +62,12 @@ impl Token {
     let mut index: usize = 0;
 
     while index < token_data.len() {
-      let (packet, taken) = match Token::depacketize(&token_data, index) {
+      let (packet, packet_length) = match Token::depacketize(&token_data, index) {
         Ok((p, t))  => (p, t),
         Err(reason) => return Err(reason)
       };
 
-      index += taken;
+      index += packet_length;
 
       match packet.field.as_slice() {
         b"location"   => location   = Some(packet.value),
