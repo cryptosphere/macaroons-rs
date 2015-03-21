@@ -62,7 +62,11 @@ impl Token {
     let mut index: usize = 0;
 
     while index < token_data.len() {
-      let (packet, taken) = Token::depacketize(&token_data, index);
+      let (packet, taken) = match Token::depacketize(&token_data, index) {
+        Ok((p, t))  => (p, t),
+        Err(reason) => return Err(reason)
+      };
+
       index += taken;
 
       match packet.field.as_slice() {
@@ -97,19 +101,31 @@ impl Token {
     Ok(token)
   }
 
-  fn depacketize(data: &Vec<u8>, index: usize) -> (Packet, usize) {
-    let length_str = std::str::from_utf8(&data[index .. index + PACKET_PREFIX_LENGTH]).unwrap();
-    let packet_length: usize = std::num::from_str_radix(length_str, 16).unwrap();
+  fn depacketize(data: &Vec<u8>, index: usize) -> Result<(Packet, usize), &'static str> {
+    // TODO: parse this length without involving any UTF-8 conversions
+    let length_str = match std::str::from_utf8(&data[index .. index + PACKET_PREFIX_LENGTH]) {
+      Ok(string) => string,
+      _          => return Err("couldn't stringify packet length")
+    };
+
+    let packet_length: usize = match std::num::from_str_radix(length_str, 16) {
+      Ok(length) => length,
+      _          => return Err("couldn't parse packet length")
+    };
 
     let mut packet_bytes = data[index + PACKET_PREFIX_LENGTH .. index + packet_length].to_vec();
 
-    let pos = packet_bytes.iter().position(|&byte| byte == b' ').unwrap();
+    let pos = match packet_bytes.iter().position(|&byte| byte == b' ') {
+      Some(i) => i,
+      None    => return Err("malformed packet")
+    };
+
     let mut value = packet_bytes.split_off(pos);
     value.remove(0);
     value.pop();
 
     let packet = Packet { field: packet_bytes, value: value };
-    (packet, packet_length)
+    Ok((packet, packet_length))
   }
 
   pub fn add_caveat(&self, caveat: Caveat) -> Token {
