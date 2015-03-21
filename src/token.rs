@@ -3,10 +3,10 @@ use std::slice::bytes;
 
 pub use caveat::{Caveat, Predicate};
 
+use serialize::base64::{self, FromBase64, ToBase64};
+
 pub use sodiumoxide::crypto::auth::hmacsha256::{Key, Tag, TAGBYTES};
 use sodiumoxide::crypto::auth::hmacsha256::authenticate;
-
-use serialize::base64::{self, FromBase64, ToBase64};
 
 // Macaroons personalize the HMAC key using the string
 // "macaroons-key-generator" padded to 32-bytes with zeroes
@@ -125,19 +125,7 @@ impl Token {
   }
 
   pub fn add_caveat(&self, caveat: Caveat) -> Token {
-    let Tag(key_bytes) = self.tag;
-    let Predicate(predicate_bytes) = caveat.predicate.clone();
-    let tag = authenticate(&predicate_bytes, &Key(key_bytes));
-
-    let mut new_caveats = self.caveats.to_vec();
-    new_caveats.push(caveat);
-
-    Token {
-      identifier: self.identifier.clone(),
-      location:   self.location.clone(),
-      caveats:    new_caveats,
-      tag:        tag
-    }
+    caveat.append(self)
   }
 
   pub fn serialize(&self) -> Vec<u8> {
