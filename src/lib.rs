@@ -70,9 +70,9 @@ impl Token {
       index += taken;
 
       match packet.field.as_slice() {
-        b"location"   => { location = Some(packet.value) },
-        b"identifier" => { identifier = Some(packet.value) },
-        b"cid"        => { caveats.push(Caveat::new(Predicate(packet.value))) },
+        b"location"   => location = Some(packet.value),
+        b"identifier" => identifier = Some(packet.value),
+        b"cid"        => caveats.push(Caveat::new(Predicate(packet.value))),
         b"signature"  => {
           if packet.value.len() != TAGBYTES {
             return Err("invalid signature length")
@@ -83,7 +83,7 @@ impl Token {
 
           tag = Some(Tag(signature_bytes))
         },
-        _ => { return Err("unrecognized packet type"); }
+        _ => return Err("unrecognized packet type")
       }
     }
 
