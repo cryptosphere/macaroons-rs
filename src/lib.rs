@@ -70,7 +70,7 @@ impl Token {
       index += taken;
 
       match packet.field.as_slice() {
-        b"location"   => location = Some(packet.value),
+        b"location"   => location   = Some(packet.value),
         b"identifier" => identifier = Some(packet.value),
         b"cid"        => caveats.push(Caveat::new(Predicate(packet.value))),
         b"signature"  => {
@@ -122,7 +122,11 @@ impl Token {
 
     let mut value = packet_bytes.split_off(pos);
     value.remove(0);
-    value.pop();
+
+    match value.pop().unwrap() {
+      b'\n' => (),
+      _     => return Err("packet not newline terminated")
+    }
 
     let packet = Packet { field: packet_bytes, value: value };
     Ok((packet, packet_length))
