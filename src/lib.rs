@@ -16,7 +16,7 @@ use sodiumoxide::crypto::auth::hmacsha256::authenticate;
 extern crate "rustc-serialize" as serialize;
 use serialize::base64::{self, FromBase64, ToBase64};
 
-// Macaroons personalize the HMAC key using this string
+// Macaroons personalize the HMAC key using the string
 // "macaroons-key-generator" padded to 32-bytes with zeroes
 const KEY_GENERATOR: &'static [u8; 32] = b"macaroons-key-generator\0\0\0\0\0\0\0\0\0";
 
