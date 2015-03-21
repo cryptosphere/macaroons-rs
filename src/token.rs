@@ -160,6 +160,6 @@ impl Token {
     let mut pkt_line = format!("{:04x}{} ", packet_length, field).into_bytes();
     result.append(&mut pkt_line);
     result.append(&mut value.clone());
-    result.push('\n' as u8);
+    result.push(b'\n');
   }
 }
