@@ -54,7 +54,11 @@ impl Token {
     let mut caveats:    Vec<Caveat>     = Vec::new();
     let mut tag:        Option<Tag>     = None;
 
-    let token_data = macaroon.as_slice().from_base64().unwrap();
+    let token_data = match macaroon.as_slice().from_base64() {
+      Ok(bytes) => bytes,
+      _         => return Err("couldn't parse base64")
+    };
+
     let mut index: usize = 0;
 
     while index < token_data.len() {
@@ -78,6 +82,10 @@ impl Token {
         _ => { return Err("unrecognized packet type"); }
       }
     }
+
+    if location   == None { return Err("no 'location' found"); }
+    if identifier == None { return Err("no 'identifier' found"); }
+    if tag        == None { return Err("no 'signature' found"); }
 
     let token = Token {
       location:   location.unwrap(),
