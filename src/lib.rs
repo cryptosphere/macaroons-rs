@@ -31,8 +31,9 @@ pub struct Token {
 }
 
 struct Packet {
-  pub field: Vec<u8>,
-  pub value: Vec<u8>
+  pub id:     Vec<u8>,
+  pub value:  Vec<u8>,
+  pub length: usize
 }
 
 impl Token {
@@ -62,14 +63,14 @@ impl Token {
     let mut index: usize = 0;
 
     while index < token_data.len() {
-      let (packet, packet_length) = match Token::depacketize(&token_data, index) {
-        Ok((p, t))  => (p, t),
+      let packet = match Token::depacketize(&token_data, index) {
+        Ok(p)       => p,
         Err(reason) => return Err(reason)
       };
 
-      index += packet_length;
+      index += packet.length;
 
-      match packet.field.as_slice() {
+      match packet.id.as_slice() {
         b"location"   => location   = Some(packet.value),
         b"identifier" => identifier = Some(packet.value),
         b"cid"        => caveats.push(Caveat::new(Predicate(packet.value))),
@@ -101,7 +102,7 @@ impl Token {
     Ok(token)
   }
 
-  fn depacketize(data: &Vec<u8>, index: usize) -> Result<(Packet, usize), &'static str> {
+  fn depacketize(data: &Vec<u8>, index: usize) -> Result<Packet, &'static str> {
     // TODO: parse this length without involving any UTF-8 conversions
     let length_str = match std::str::from_utf8(&data[index .. index + PACKET_PREFIX_LENGTH]) {
       Ok(string) => string,
@@ -128,8 +129,7 @@ impl Token {
       _     => return Err("packet not newline terminated")
     }
 
-    let packet = Packet { field: packet_bytes, value: value };
-    Ok((packet, packet_length))
+    Ok(Packet { id: packet_bytes, value: value, length: packet_length })
   }
 
   pub fn add_caveat(&self, caveat: Caveat) -> Token {
