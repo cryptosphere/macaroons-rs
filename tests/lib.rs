@@ -61,7 +61,7 @@ fn binary_serialization() {
 
 #[test]
 fn binary_deserialization() {
-  let token = Token::deserialize(example_macaroon());
+  let token = Token::deserialize(example_macaroon()).unwrap();
 
   assert_eq!(example_uri(), token.location);
   assert_eq!(example_id(),  token.identifier);

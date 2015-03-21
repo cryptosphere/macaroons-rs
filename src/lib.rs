@@ -48,7 +48,7 @@ impl Token {
     }
   }
 
-  pub fn deserialize(macaroon: Vec<u8>) -> Token {
+  pub fn deserialize(macaroon: Vec<u8>) -> Result<Token, &'static str> {
     let mut location:   Option<Vec<u8>> = None;
     let mut identifier: Option<Vec<u8>> = None;
     let mut caveats:    Vec<Caveat>     = Vec::new();
@@ -67,7 +67,7 @@ impl Token {
         b"cid"        => { caveats.push(Caveat::new(Predicate(packet.value))) },
         b"signature"  => {
           if packet.value.len() != TAGBYTES {
-            panic!("invalid signature length")
+            return Err("invalid signature length")
           }
 
           let mut signature_bytes = [0u8; TAGBYTES];
@@ -75,16 +75,18 @@ impl Token {
 
           tag = Some(Tag(signature_bytes))
         },
-        _ => { panic!("unrecognized packet type"); }
+        _ => { return Err("unrecognized packet type"); }
       }
     }
 
-    Token {
+    let token = Token {
       location:   location.unwrap(),
       identifier: identifier.unwrap(),
       caveats:    caveats,
       tag:        tag.unwrap()
-    }
+    };
+
+    Ok(token)
   }
 
   fn depacketize(data: &Vec<u8>, index: usize) -> (Packet, usize) {
@@ -96,10 +98,7 @@ impl Token {
     let pos = packet_bytes.iter().position(|&byte| byte == b' ').unwrap();
     let mut value = packet_bytes.split_off(pos);
     value.remove(0);
-
-    if value.pop().unwrap() != b'\n' {
-      panic!("unexpected character at end of pkt-line");
-    }
+    value.pop();
 
     let packet = Packet { field: packet_bytes, value: value };
     (packet, packet_length)
