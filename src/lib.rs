@@ -3,9 +3,10 @@
 
 #![feature(core)]
 #![feature(collections)]
+#![feature(convert)]
 
 extern crate sodiumoxide;
-extern crate "rustc-serialize" as serialize;
+extern crate rustc_serialize;
 
 pub mod token;
 pub mod caveat;

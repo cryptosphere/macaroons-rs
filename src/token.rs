@@ -3,7 +3,7 @@ use std::slice::bytes;
 
 pub use caveat::{Caveat, Predicate};
 
-use serialize::base64::{self, FromBase64, ToBase64};
+use rustc_serialize::base64::{self, FromBase64, ToBase64};
 
 pub use sodiumoxide::crypto::auth::hmacsha256::{Key, Tag, TAGBYTES};
 use sodiumoxide::crypto::auth::hmacsha256::authenticate;
@@ -72,7 +72,7 @@ impl Token {
           }
 
           let mut signature_bytes = [0u8; TAGBYTES];
-          bytes::copy_memory(&mut signature_bytes, &packet.value[..TAGBYTES]);
+          bytes::copy_memory(&packet.value[..TAGBYTES], &mut signature_bytes);
 
           tag = Some(Tag(signature_bytes))
         },
@@ -101,8 +101,8 @@ impl Token {
       _          => return Err("couldn't stringify packet length")
     };
 
-    let packet_length: usize = match std::num::from_str_radix(length_str, 16) {
-      Ok(length) => length,
+    let packet_length: usize = match i16::from_str_radix(length_str, 16) {
+      Ok(length) => length as usize,
       _          => return Err("couldn't parse packet length")
     };
 
