@@ -4,6 +4,11 @@ extern crate macaroons;
 pub use macaroons::token::{Token, Tag};
 pub use macaroons::caveat::{Caveat, Predicate};
 
+const EMPTY_TAG:    [u8; 32] = [0xe3,0xd9,0xe0,0x29,0x08,0x52,0x6c,0x4c
+                               ,0x00,0x39,0xae,0x15,0x11,0x41,0x15,0xd9
+                               ,0x7f,0xdd,0x68,0xbf,0x2b,0xa3,0x79,0xb3
+                               ,0x42,0xaa,0xf0,0xf6,0x17,0xd0,0x55,0x2f];
+
 const EXPECTED_TAG: [u8; 32] = [0x19,0x7b,0xac,0x7a,0x04,0x4a,0xf3,0x33
                                ,0x32,0x86,0x5b,0x92,0x66,0xe2,0x6d,0x49
                                ,0x3b,0xdd,0x66,0x8a,0x66,0x0e,0x44,0xd8
@@ -25,7 +30,12 @@ fn example_predicate() -> Predicate {
   Predicate(String::from_str("test = caveat").into_bytes())
 }
 
-fn example_macaroon() -> Vec<u8> {
+fn example_token() -> Token {
+  let token = Token::new(example_key(), example_id(), example_uri());
+  token.add_caveat(Caveat::new(example_predicate()))
+}
+
+fn example_serialized() -> Vec<u8> {
   String::from_str("MDAxY2xvY2F0aW9uIGh0dHA6Ly9teWJhbmsvCjAwMjZpZGVudGlmaWVyIHdlIHVzZWQgb3VyIHNlY3JldCBrZXkKMDAxNmNpZCB0ZXN0ID0gY2F2ZWF0CjAwMmZzaWduYXR1cmUgGXusegRK8zMyhluSZuJtSTvdZopmDkTYjOGpmMI9vWcK").into_bytes()
 }
 
@@ -34,34 +44,23 @@ fn empty_macaroon_signature() {
   let token = Token::new(example_key(), example_id(), example_uri());
   let Tag(actual_tag) = token.tag;
 
-  let expected_tag = [0xe3,0xd9,0xe0,0x29,0x08,0x52,0x6c,0x4c
-                     ,0x00,0x39,0xae,0x15,0x11,0x41,0x15,0xd9
-                     ,0x7f,0xdd,0x68,0xbf,0x2b,0xa3,0x79,0xb3
-                     ,0x42,0xaa,0xf0,0xf6,0x17,0xd0,0x55,0x2f];
-
-  assert_eq!(expected_tag, actual_tag)
+  assert_eq!(EMPTY_TAG, actual_tag)
 }
 
 #[test]
 fn signature_with_first_party_caveat() {
-  let token = Token::new(example_key(), example_id(), example_uri());
-  let new_token = token.add_caveat(Caveat::new(example_predicate()));
-
-  let Tag(actual_tag) = new_token.tag;
+  let Tag(actual_tag) = example_token().tag;
   assert_eq!(EXPECTED_TAG, actual_tag)
 }
 
 #[test]
 fn binary_serialization() {
-  let token = Token::new(example_key(), example_id(), example_uri());
-  let new_token = token.add_caveat(Caveat::new(example_predicate()));
-
-  assert_eq!(example_macaroon(), new_token.serialize());
+  assert_eq!(example_serialized(), example_token().serialize());
 }
 
 #[test]
 fn binary_deserialization() {
-  let token = Token::deserialize(example_macaroon()).unwrap();
+  let token = Token::deserialize(example_serialized()).unwrap();
 
   assert_eq!(example_uri(), token.location);
   assert_eq!(example_id(),  token.identifier);
