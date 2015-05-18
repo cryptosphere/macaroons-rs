@@ -1,5 +1,4 @@
 use std;
-use std::slice::bytes;
 
 pub use caveat::{Caveat, Predicate};
 
@@ -47,7 +46,7 @@ impl Token {
     let mut caveats:    Vec<Caveat>     = Vec::new();
     let mut tag:        Option<Tag>     = None;
 
-    let token_data = match macaroon.as_slice().from_base64() {
+    let token_data = match macaroon.from_base64() {
       Ok(bytes) => bytes,
       _         => return Err("couldn't parse base64")
     };
@@ -62,7 +61,7 @@ impl Token {
 
       index += packet.length;
 
-      match packet.id.as_slice() {
+      match &packet.id[..] {
         b"location"   => location   = Some(packet.value),
         b"identifier" => identifier = Some(packet.value),
         b"cid"        => caveats.push(Caveat::new(Predicate(packet.value))),
@@ -72,7 +71,9 @@ impl Token {
           }
 
           let mut signature_bytes = [0u8; TAGBYTES];
-          bytes::copy_memory(&packet.value[..TAGBYTES], &mut signature_bytes);
+          for (src, dst) in packet.value.iter().zip(signature_bytes.iter_mut()) {
+            *dst = *src;
+          }
 
           tag = Some(Tag(signature_bytes))
         },
@@ -113,7 +114,8 @@ impl Token {
       None    => return Err("malformed packet")
     };
 
-    let mut value = packet_bytes.split_off(pos);
+    let (id, value_arr) = packet_bytes.split_at_mut(pos);
+    let mut value = value_arr.to_vec();
     value.remove(0);
 
     match value.pop().unwrap() {
@@ -121,7 +123,7 @@ impl Token {
       _     => return Err("packet not newline terminated")
     }
 
-    Ok(Packet { id: packet_bytes, value: value, length: packet_length })
+    Ok(Packet { id: id.to_vec(), value: value, length: packet_length })
   }
 
   pub fn add_caveat(&self, caveat: Caveat) -> Token {
@@ -140,26 +142,23 @@ impl Token {
       Token::packetize(&mut result, "cid", &predicate_bytes);
     }
 
-    let Tag(signature_bytes) = self.tag;
-    let mut signature_vec = Vec::new();
-    signature_vec.push_all(&signature_bytes);
-
-    Token::packetize(&mut result, "signature", &signature_vec);
+    let Tag(signature) = self.tag;
+    Token::packetize(&mut result, "signature", &signature.to_vec());
 
     result.to_base64(base64::URL_SAFE).into_bytes()
   }
 
   fn packetize(result: &mut Vec<u8>, field: &str, value: &Vec<u8>) {
-    let field_bytes: Vec<u8> = String::from_str(field).into_bytes();
+    let field_bytes: Vec<u8> = Vec::from(field);
     let packet_length = PACKET_PREFIX_LENGTH + field_bytes.len() + value.len() + 2;
 
     if packet_length > MAX_PACKET_LENGTH {
       panic!("packet too large to serialize");
     }
 
-    let mut pkt_line = format!("{:04x}{} ", packet_length, field).into_bytes();
-    result.append(&mut pkt_line);
-    result.append(&mut value.clone());
+    let pkt_line = format!("{:04x}{} ", packet_length, field).into_bytes();
+    result.extend(pkt_line.into_iter());
+    result.extend(value.clone().into_iter());
     result.push(b'\n');
   }
 }

@@ -10,7 +10,5 @@ version     = "0.0.0"
 authors     = ["Tony Arcieri <bascule@gmail.com>"]
 
 [dependencies.sodiumoxide]
-git = "https://github.com/dnaq/sodiumoxide.git"
 
 [dependencies.rustc-serialize]
-git = "https://github.com/rust-lang/rustc-serialize.git"

@@ -1,5 +1,3 @@
-#![feature(collections)]
-
 extern crate macaroons;
 pub use macaroons::token::{Token, Tag};
 pub use macaroons::caveat::{Caveat, Predicate};
@@ -15,19 +13,19 @@ const EXPECTED_TAG: [u8; 32] = [0x19,0x7b,0xac,0x7a,0x04,0x4a,0xf3,0x33
                                ,0x8c,0xe1,0xa9,0x98,0xc2,0x3d,0xbd,0x67];
 
 fn example_key() -> Vec<u8> {
-  String::from_str("this is our super secret key; only we should know it").into_bytes()
+  Vec::from("this is our super secret key; only we should know it")
 }
 
 fn example_id() -> Vec<u8> {
-  String::from_str("we used our secret key").into_bytes()
+  Vec::from("we used our secret key")
 }
 
 fn example_uri() -> Vec<u8> {
-  String::from_str("http://mybank/").into_bytes()
+  Vec::from("http://mybank/")
 }
 
 fn example_predicate() -> Predicate {
-  Predicate(String::from_str("test = caveat").into_bytes())
+  Predicate(Vec::from("test = caveat"))
 }
 
 fn example_token() -> Token {
@@ -36,7 +34,7 @@ fn example_token() -> Token {
 }
 
 fn example_serialized() -> Vec<u8> {
-  String::from_str("MDAxY2xvY2F0aW9uIGh0dHA6Ly9teWJhbmsvCjAwMjZpZGVudGlmaWVyIHdlIHVzZWQgb3VyIHNlY3JldCBrZXkKMDAxNmNpZCB0ZXN0ID0gY2F2ZWF0CjAwMmZzaWduYXR1cmUgGXusegRK8zMyhluSZuJtSTvdZopmDkTYjOGpmMI9vWcK").into_bytes()
+  Vec::from("MDAxY2xvY2F0aW9uIGh0dHA6Ly9teWJhbmsvCjAwMjZpZGVudGlmaWVyIHdlIHVzZWQgb3VyIHNlY3JldCBrZXkKMDAxNmNpZCB0ZXN0ID0gY2F2ZWF0CjAwMmZzaWduYXR1cmUgGXusegRK8zMyhluSZuJtSTvdZopmDkTYjOGpmMI9vWcK")
 }
 
 #[test]
