@@ -6,7 +6,7 @@ repository  = "https://github.com/cryptosphere/rust-macaroons.git"
 readme      = "README.md"
 keywords    = ["cookies", "authorization", "credentials"]
 license     = "MIT"
-version     = "0.1.0"
+version     = "0.1.1"
 authors     = ["Tony Arcieri <bascule@gmail.com>"]
 
 [dependencies.sodiumoxide]
