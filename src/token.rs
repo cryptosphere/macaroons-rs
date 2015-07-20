@@ -28,7 +28,7 @@ struct Packet {
 }
 
 impl Token {
-  pub fn new(key: Vec<u8>, identifier: Vec<u8>, location: Vec<u8>) -> Token {
+  pub fn new(key: &Vec<u8>, identifier: Vec<u8>, location: Vec<u8>) -> Token {
     let Tag(personalized_key) = authenticate(&key, &Key(*KEY_GENERATOR));
     let tag = authenticate(&identifier, &Key(personalized_key));
 
@@ -128,6 +128,16 @@ impl Token {
 
   pub fn add_caveat(&self, caveat: Caveat) -> Token {
     caveat.append(self)
+  }
+
+  pub fn verify(&self, key: &Vec<u8>) -> bool {
+    let mut verify_token = Token::new(&key, self.identifier.clone(), self.location.clone());
+
+    for caveat in &self.caveats {
+      verify_token = verify_token.add_caveat(caveat.clone())
+    }
+
+    verify_token.tag == self.tag
   }
 
   pub fn serialize(&self) -> Vec<u8> {

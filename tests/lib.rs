@@ -16,6 +16,10 @@ fn example_key() -> Vec<u8> {
   Vec::from("this is our super secret key; only we should know it")
 }
 
+fn invalid_key() -> Vec<u8> {
+  Vec::from("this is not the key you are looking for; it is evil")
+}
+
 fn example_id() -> Vec<u8> {
   Vec::from("we used our secret key")
 }
@@ -29,7 +33,7 @@ fn example_predicate() -> Predicate {
 }
 
 fn example_token() -> Token {
-  let token = Token::new(example_key(), example_id(), example_uri());
+  let token = Token::new(&example_key(), example_id(), example_uri());
   token.add_caveat(Caveat::new(example_predicate()))
 }
 
@@ -39,7 +43,7 @@ fn example_serialized() -> Vec<u8> {
 
 #[test]
 fn empty_macaroon_signature() {
-  let token = Token::new(example_key(), example_id(), example_uri());
+  let token = Token::new(&example_key(), example_id(), example_uri());
   let Tag(actual_tag) = token.tag;
 
   assert_eq!(EMPTY_TAG, actual_tag)
@@ -65,4 +69,12 @@ fn binary_deserialization() {
 
   let Tag(actual_tag) = token.tag;
   assert_eq!(EXPECTED_TAG, actual_tag)
+}
+
+#[test]
+fn simple_verification() {
+  let token    = example_token();
+
+  assert!(token.verify(&example_key()), "verifies with valid key");
+  assert!(!token.verify(&invalid_key()), "doesn't verify with invalid key");
 }

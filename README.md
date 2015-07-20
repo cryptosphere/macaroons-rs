@@ -25,14 +25,15 @@ is changing rapidly.
 The following features have been implemented:
 
 * Creating Macaroons
+* Verifying Macaroons
 * First-party caveats
 * Serializing to base64url-encoded binary format
 * Deserializing base64url-encoded Macaroons
 
 The following features need to be implemented for this library to be useful:
 
-* Verifying Macaroons
 * Third-party caveats
+* Predicate verifiers
 
 ## Help and Discussion
 
