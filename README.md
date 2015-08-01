@@ -30,11 +30,11 @@ The following features have been implemented:
 * First-party caveats
 * Serializing to base64url-encoded binary format
 * Deserializing base64url-encoded Macaroons
+* Verifying predicates
 
 The following features need to be implemented for this library to be useful:
 
 * Third-party caveats
-* Predicate verifiers
 
 ## Help and Discussion
 
