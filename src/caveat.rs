@@ -8,13 +8,17 @@ pub struct Predicate(pub Vec<u8>);
 
 #[derive(Clone)]
 pub struct Caveat {
-  pub predicate: Predicate
+  pub predicate:       Predicate,
+  pub verification_id: Option<Vec<u8>>,
+  pub location:        Option<Vec<u8>>
 }
 
 impl Caveat {
-  pub fn new(predicate: Predicate) -> Caveat {
+  pub fn first_party(predicate: Predicate) -> Caveat {
     Caveat {
-      predicate: predicate
+      predicate:       predicate,
+      verification_id: None,
+      location:        None
     }
   }
 

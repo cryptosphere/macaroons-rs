@@ -64,7 +64,7 @@ impl Token {
       match &packet.id[..] {
         b"location"   => location   = Some(packet.value),
         b"identifier" => identifier = Some(packet.value),
-        b"cid"        => caveats.push(Caveat::new(Predicate(packet.value))),
+        b"cid"        => caveats.push(Caveat::first_party(Predicate(packet.value))),
         b"signature"  => {
           if packet.value.len() != TAGBYTES {
             return Err("invalid signature length")

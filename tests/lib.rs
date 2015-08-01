@@ -35,7 +35,7 @@ fn example_predicate() -> Predicate {
 
 fn example_token() -> Token {
   let token = Token::new(&example_key(), example_id(), example_uri());
-  token.add_caveat(Caveat::new(example_predicate()))
+  token.add_caveat(Caveat::first_party(example_predicate()))
 }
 
 fn example_serialized() -> Vec<u8> {
