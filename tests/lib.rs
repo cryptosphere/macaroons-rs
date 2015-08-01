@@ -1,6 +1,7 @@
 extern crate macaroons;
 pub use macaroons::token::{Token, Tag};
 pub use macaroons::caveat::{Caveat, Predicate};
+pub use macaroons::verifier::Verifier;
 
 const EMPTY_TAG:    [u8; 32] = [0xe3,0xd9,0xe0,0x29,0x08,0x52,0x6c,0x4c
                                ,0x00,0x39,0xae,0x15,0x11,0x41,0x15,0xd9
@@ -73,8 +74,21 @@ fn binary_deserialization() {
 
 #[test]
 fn simple_verification() {
-  let token    = example_token();
+  let token = example_token();
 
   assert!(token.verify(&example_key()), "verifies with valid key");
   assert!(!token.verify(&invalid_key()), "doesn't verify with invalid key");
+}
+
+#[test]
+fn verifying_predicates() {
+  let token = example_token();
+
+  let matching_verifier = Verifier::new(|_predicate| { true });
+  assert!(matching_verifier.verify(&example_key(), &token));
+  assert!(!matching_verifier.verify(&invalid_key(), &token));
+
+  let non_matching_verifier = Verifier::new(|_predicate| { false });
+  assert!(!non_matching_verifier.verify(&example_key(), &token));
+  assert!(!non_matching_verifier.verify(&invalid_key(), &token));
 }

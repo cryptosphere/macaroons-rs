@@ -6,3 +6,4 @@ extern crate rustc_serialize;
 
 pub mod token;
 pub mod caveat;
+pub mod verifier;
