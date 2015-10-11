@@ -6,10 +6,9 @@ use rustc_serialize::base64::{self, FromBase64, ToBase64};
 
 pub use sodiumoxide::crypto::auth::hmacsha256::{Key, Tag, TAGBYTES};
 use sodiumoxide::crypto::auth::hmacsha256::authenticate;
+use sodiumoxide::crypto::secretbox;
 
-// Macaroons personalize the HMAC key using the string
-// "macaroons-key-generator" padded to 32-bytes with zeroes
-const KEY_GENERATOR: &'static [u8; 32] = b"macaroons-key-generator\0\0\0\0\0\0\0\0\0";
+use KEY_GENERATOR;
 
 const PACKET_PREFIX_LENGTH: usize = 4;
 const MAX_PACKET_LENGTH:    usize = 65535;
@@ -126,15 +125,55 @@ impl Token {
     Ok(Packet { id: id.to_vec(), value: value, length: packet_length })
   }
 
-  pub fn add_caveat(&self, caveat: Caveat) -> Token {
-    caveat.append(self)
+  pub fn add_caveat(&self, caveat: &Caveat) -> Token {
+    let Tag(key_bytes)  = self.tag;
+    let mut new_caveats = self.caveats.to_vec();
+
+    let new_tag = match caveat.caveat_key {
+      Some(ref key) => {
+        let Tag(personalized_key) = authenticate(&key, &Key(*KEY_GENERATOR));
+        let nonce = secretbox::gen_nonce();
+
+        let mut new_caveat  = caveat.clone();
+        let verification_id = secretbox::seal(&key_bytes, &nonce, &secretbox::xsalsa20poly1305::Key(personalized_key));
+
+        let Tag(caveat_id_tag)       = authenticate(&new_caveat.caveat_id, &Key(key_bytes));
+        let Tag(verification_id_tag) = authenticate(&verification_id, &Key(key_bytes));
+
+        new_caveat.verification_id = Some(verification_id);
+
+        let mut caveat_tags = [0u8; TAGBYTES * 2];
+
+        for (src, dst) in caveat_id_tag.iter().zip(caveat_tags[0..TAGBYTES].iter_mut()) {
+          *dst = *src;
+        }
+
+        for (src, dst) in verification_id_tag.iter().zip(caveat_tags[TAGBYTES..(TAGBYTES * 2 - 1)].iter_mut()) {
+          *dst = *src;
+        }
+
+        new_caveats.push(new_caveat);
+        authenticate(&caveat_tags, &Key(key_bytes))
+      },
+      None => {
+        new_caveats.push(caveat.clone());
+        authenticate(&caveat.caveat_id, &Key(key_bytes))
+      }
+    };
+
+    Token {
+      identifier: self.identifier.clone(),
+      location:   self.location.clone(),
+      caveats:    new_caveats,
+      tag:        new_tag
+    }
   }
 
   pub fn verify(&self, key: &Vec<u8>) -> bool {
     let mut verify_token = Token::new(&key, self.identifier.clone(), self.location.clone());
 
     for caveat in &self.caveats {
-      verify_token = verify_token.add_caveat(caveat.clone())
+      verify_token = verify_token.add_caveat(&caveat)
     }
 
     verify_token.tag == self.tag
@@ -148,8 +187,7 @@ impl Token {
     Token::packetize(&mut result, "identifier", &self.identifier);
 
     for caveat in self.caveats.iter() {
-      let Predicate(predicate_bytes) = caveat.predicate.clone();
-      Token::packetize(&mut result, "cid", &predicate_bytes);
+      Token::packetize(&mut result, "cid", &caveat.caveat_id);
     }
 
     let Tag(signature) = self.tag;

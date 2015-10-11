@@ -18,6 +18,6 @@ impl<F> Verifier<F> where F: Fn(&Predicate) -> bool {
     }
 
     let matcher = &self.matcher;
-    token.caveats.iter().all(|caveat| { matcher(&caveat.predicate) })
+    token.caveats.iter().all(|caveat| { matcher(&Predicate(caveat.caveat_id.clone())) })
   }
 }
