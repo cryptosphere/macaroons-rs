@@ -1,36 +1,36 @@
-pub use token::Token;
-
-pub use sodiumoxide::crypto::auth::hmacsha256::{Key, Tag};
-use sodiumoxide::crypto::auth::hmacsha256::authenticate;
-
 #[derive(Clone)]
 pub struct Predicate(pub Vec<u8>);
 
 #[derive(Clone)]
 pub struct Caveat {
-  pub predicate: Predicate
+  pub caveat_id:       Vec<u8>,
+  pub caveat_key:      Option<Vec<u8>>,
+  pub verification_id: Option<Vec<u8>>,
+  pub caveat_location: Option<Vec<u8>>
 }
 
 impl Caveat {
-  pub fn new(predicate: Predicate) -> Caveat {
+  pub fn first_party(predicate: Predicate) -> Caveat {
+    let Predicate(caveat_id) = predicate;
+
     Caveat {
-      predicate: predicate
+      caveat_id:       caveat_id,
+      caveat_key:      None,
+      verification_id: None,
+      caveat_location: None
     }
   }
 
-  pub fn append(self, token: &Token) -> Token {
-    let Tag(key_bytes) = token.tag;
-    let Predicate(predicate_bytes) = self.predicate.clone();
-    let tag = authenticate(&predicate_bytes, &Key(key_bytes));
-
-    let mut new_caveats = token.caveats.to_vec();
-    new_caveats.push(self);
-
-    Token {
-      identifier: token.identifier.clone(),
-      location:   token.location.clone(),
-      caveats:    new_caveats,
-      tag:        tag
+  pub fn third_party(
+    caveat_key:      Vec<u8>,
+    caveat_id:       Vec<u8>,
+    caveat_location: Vec<u8>
+  ) -> Caveat {
+    Caveat {
+      caveat_id:       caveat_id,
+      caveat_key:      Some(caveat_key),
+      verification_id: None,
+      caveat_location: Some(caveat_location)
     }
   }
 }
