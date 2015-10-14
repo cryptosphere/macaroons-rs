@@ -64,6 +64,12 @@ impl Token {
         b"location"   => location   = Some(packet.value),
         b"identifier" => identifier = Some(packet.value),
         b"cid"        => caveats.push(Caveat::first_party(Predicate(packet.value))),
+        b"vid"        => {
+          //TODO: change the verification_id of the most recent caveat
+        },
+        b"cl"         => {
+          //TODO: change the caveat_location of the most recent caveat
+        },
         b"signature"  => {
           if packet.value.len() != TAGBYTES {
             return Err("invalid signature length")
@@ -188,6 +194,16 @@ impl Token {
 
     for caveat in self.caveats.iter() {
       Token::packetize(&mut result, "cid", &caveat.caveat_id);
+
+      match caveat.verification_id.clone() {
+        Some(vid) => Token::packetize(&mut result, "vid", &vid),
+        None      => ()
+      }
+
+      match caveat.caveat_location.clone() {
+        Some(cl)  => Token::packetize(&mut result, "cl", &cl),
+        None      => ()
+      }
     }
 
     let Tag(signature) = self.tag;

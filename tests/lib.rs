@@ -77,8 +77,8 @@ fn signature_with_third_party_caveat() {
   token = token.add_caveat(&example_first_party_caveat());
   token = token.add_caveat(&example_third_party_caveat());
 
-  //TODO: at least check we can parse the token
-  //Without a parameterized nonce value, we can't have deterministic test vectors
+  let token_serialized = token.serialize();
+  let parsed_token = Token::deserialize(token_serialized).unwrap();
 }
 
 #[test]
