@@ -33,6 +33,7 @@ The following features have been implemented:
 
 The following features still need to be implemented:
 
+* Discharge macaroons
 * Verifying third-party caveats
 
 Additional planned work:
