@@ -18,23 +18,26 @@ http://macaroons.io
 
 ### Is it "Production Ready™"?
 
-![DANGER: EXPERIMENTAL](https://raw.github.com/cryptosphere/cryptosphere/master/images/experimental.png)
-
-No. This library only implements part of the Macaroons token format, and the API
-is changing rapidly.
+The library is ready for eager early adopters. If you're using Rust, you're
+probably one of those anyway.
 
 The following features have been implemented:
 
 * Creating Macaroons
 * Verifying Macaroons
 * First-party caveats
+* Third-party caveats
 * Serializing to base64url-encoded binary format
 * Deserializing base64url-encoded Macaroons
-* Verifying predicates
+* Verifying first-party caveats
 
-The following features need to be implemented for this library to be useful:
+The following features still need to be implemented:
 
-* Third-party caveats
+* Verifying third-party caveats
+
+Additional planned work:
+
+* Nom-based parser (may require API changes)
 
 ## Help and Discussion
 
