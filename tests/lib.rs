@@ -39,11 +39,19 @@ fn example_caveat_key() -> Vec<u8> {
   Vec::from("4; guaranteed random by a fair toss of the dice")
 }
 
+fn example_third_party_caveat_id() -> Vec<u8> {
+  Vec::from("this was how we remind auth of key/pred")
+}
+
+fn example_third_party_caveat_location() -> Vec<u8> {
+  Vec::from("http://auth.mybank/")
+}
+
 fn example_third_party_caveat() -> Caveat {
   Caveat::third_party(
     example_caveat_key(),
-    Vec::from("this was how we remind auth of key/pred"),
-    Vec::from("http://auth.mybank/")
+    example_third_party_caveat_id(),
+    example_third_party_caveat_location()
   )
 }
 
@@ -77,8 +85,12 @@ fn signature_with_third_party_caveat() {
   token = token.add_caveat(&example_first_party_caveat());
   token = token.add_caveat(&example_third_party_caveat());
 
-  let token_serialized = token.serialize();
-  let parsed_token = Token::deserialize(token_serialized).unwrap();
+  let token_serialized   = token.serialize();
+  let parsed_token       = Token::deserialize(token_serialized).unwrap();
+  let third_party_caveat = &parsed_token.caveats[1];
+
+  assert_eq!(third_party_caveat.caveat_id, example_third_party_caveat_id());
+  assert_eq!(third_party_caveat.caveat_location, Some(example_third_party_caveat_location()));
 }
 
 #[test]

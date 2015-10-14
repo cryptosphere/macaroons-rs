@@ -61,16 +61,33 @@ impl Token {
       index += packet.length;
 
       match &packet.id[..] {
-        b"location"   => location   = Some(packet.value),
-        b"identifier" => identifier = Some(packet.value),
-        b"cid"        => caveats.push(Caveat::first_party(Predicate(packet.value))),
-        b"vid"        => {
-          //TODO: change the verification_id of the most recent caveat
+        b"location"    => location   = Some(packet.value),
+        b"identifier"  => identifier = Some(packet.value),
+        b"cid"         => caveats.push(Caveat::first_party(Predicate(packet.value))),
+        b"vid" | b"cl" => {
+          match caveats.pop() {
+            Some(caveat) => {
+              let caveat_id           = caveat.caveat_id;
+              let mut verification_id = caveat.verification_id;
+              let mut caveat_location = caveat.caveat_location;
+
+              match &packet.id[..] {
+                b"vid" => verification_id = Some(packet.value),
+                b"cl"  => caveat_location = Some(packet.value),
+                _      => ()
+              }
+
+              caveats.push(Caveat {
+                caveat_id:       caveat_id,
+                caveat_key:      None,
+                verification_id: verification_id,
+                caveat_location: caveat_location
+              })
+            },
+            None => { return Err("invalid third party caveat field ordering") }
+          }
         },
-        b"cl"         => {
-          //TODO: change the caveat_location of the most recent caveat
-        },
-        b"signature"  => {
+        b"signature" => {
           if packet.value.len() != TAGBYTES {
             return Err("invalid signature length")
           }
