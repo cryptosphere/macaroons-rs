@@ -4,7 +4,8 @@ pub use caveat::{Caveat, Predicate};
 
 use rustc_serialize::base64::{self, FromBase64, ToBase64};
 
-pub use sodiumoxide::crypto::auth::hmacsha256::{Key, Tag, TAGBYTES};
+pub use sodiumoxide::crypto::auth::hmacsha256::Tag;
+use sodiumoxide::crypto::auth::hmacsha256::{Key, State, TAGBYTES};
 use sodiumoxide::crypto::auth::hmacsha256::authenticate;
 use sodiumoxide::crypto::secretbox;
 
@@ -160,23 +161,18 @@ impl Token {
         let mut new_caveat  = caveat.clone();
         let verification_id = secretbox::seal(&key_bytes, &nonce, &secretbox::xsalsa20poly1305::Key(personalized_key));
 
-        let Tag(caveat_id_tag)       = authenticate(&new_caveat.caveat_id, &Key(key_bytes));
+        let mut caveat_authenticator = State::init(&key_bytes);
+
+        let Tag(caveat_id_tag) = authenticate(&new_caveat.caveat_id, &Key(key_bytes));
+        caveat_authenticator.update(&caveat_id_tag);
+
         let Tag(verification_id_tag) = authenticate(&verification_id, &Key(key_bytes));
+        caveat_authenticator.update(&verification_id_tag);
 
         new_caveat.verification_id = Some(verification_id);
 
-        let mut caveat_tags = [0u8; TAGBYTES * 2];
-
-        for (src, dst) in caveat_id_tag.iter().zip(caveat_tags[0..TAGBYTES].iter_mut()) {
-          *dst = *src;
-        }
-
-        for (src, dst) in verification_id_tag.iter().zip(caveat_tags[TAGBYTES..(TAGBYTES * 2 - 1)].iter_mut()) {
-          *dst = *src;
-        }
-
         new_caveats.push(new_caveat);
-        authenticate(&caveat_tags, &Key(key_bytes))
+        caveat_authenticator.finalize()
       },
       None => {
         new_caveats.push(caveat.clone());
