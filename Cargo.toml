@@ -12,4 +12,6 @@ authors     = ["Tony Arcieri <bascule@gmail.com>"]
 [dependencies.sodiumoxide]
 git = "https://github.com/dnaq/sodiumoxide.git"
 
+[dependencies.libsodium-sys]
+
 [dependencies.rustc-serialize]
