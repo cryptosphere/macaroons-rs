@@ -1,9 +1,9 @@
 language: rust
 
 install:
-  - wget https://github.com/jedisct1/libsodium/releases/download/1.0.2/libsodium-1.0.2.tar.gz
-  - tar xvfz libsodium-1.0.2.tar.gz
-  - cd libsodium-1.0.2 && ./configure --prefix=/usr && make && sudo make install && cd ..
+  - wget https://github.com/jedisct1/libsodium/releases/download/1.0.5/libsodium-1.0.5.tar.gz
+  - tar xvfz libsodium-1.0.5.tar.gz
+  - cd libsodium-1.0.5 && ./configure --prefix=/usr && make && sudo make install && cd ..
 
 notifications:
   irc: 'irc.freenode.org#cryptosphere'
