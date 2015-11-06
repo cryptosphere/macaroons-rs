@@ -1,3 +1,7 @@
+0.2.1 (2015-11-05)
+------------------
+* Utilize sodiumoxide IUF HMAC API
+
 0.2.0 (2015-10-13)
 ------------------
 * Initial serialization-only support for third-party caveats (no verification)
