@@ -10,7 +10,6 @@ version     = "0.2.0"
 authors     = ["Tony Arcieri <bascule@gmail.com>"]
 
 [dependencies.sodiumoxide]
-git = "https://github.com/dnaq/sodiumoxide.git"
 
 [dependencies.libsodium-sys]
 
