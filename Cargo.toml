@@ -1,6 +1,6 @@
 [package]
 name        = "macaroons"
-description = "Bearer credentials with caveats for distributed authorization"
+description = "Cookie-like bearer credentials with caveats for distributed authorization"
 homepage    = "https://github.com/cryptosphere/rust-macaroons"
 repository  = "https://github.com/cryptosphere/rust-macaroons.git"
 readme      = "README.md"
@@ -8,6 +8,9 @@ keywords    = ["cookies", "authorization", "credentials"]
 license     = "MIT"
 version     = "0.2.1"
 authors     = ["Tony Arcieri <bascule@gmail.com>"]
+
+[features]
+nightly = []
 
 [dependencies.sodiumoxide]
 
