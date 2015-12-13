@@ -6,16 +6,21 @@ rust:
   - stable
   - 1.2.0
 
-before_script:
-  - pip install 'travis-cargo<0.2' --user && export PATH=$HOME/.local/bin:$PATH
-
-after_success:
-  - travis-cargo coveralls --no-sudo
-
 install:
   - wget https://github.com/jedisct1/libsodium/releases/download/1.0.5/libsodium-1.0.5.tar.gz
   - tar xvfz libsodium-1.0.5.tar.gz
   - cd libsodium-1.0.5 && ./configure --prefix=/usr && make && sudo make install && cd ..
+  - pip install 'travis-cargo<0.2' --user && export PATH=$HOME/.local/bin:$PATH
+
+script:
+  - |
+      travis-cargo build &&
+      travis-cargo test &&
+      travis-cargo bench
+      travis-cargo --only stable doc
+
+after_success:
+  - travis-cargo coveralls --no-sudo
 
 notifications:
   irc: 'irc.freenode.org#cryptosphere'
