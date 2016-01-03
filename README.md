@@ -51,13 +51,17 @@ You can also join by email by sending an email message here:
 
 [macaroons+subscribe@googlegroups.com](mailto:macaroons+subscribe@googlegroups.com)
 
-We're also on IRC at #cryptosphere on irc.freenode.net.
+We're also on IRC at #macaroons on irc.freenode.net.
 
 ## Usage
 
 Coming soon!
 
-Additional Reading
-------------------
+## Additional Reading
 
 * [Macaroons: Cookies with Contextual Caveats for Decentralized Authroization in the Cloud](https://static.googleusercontent.com/media/research.google.com/en/us/pubs/archive/41892.pdf)
+
+## License
+
+Copyright (c) 2015-2016 Tony Arcieri. Distributed under the MIT License.
+See LICENSE.txt for further details.
