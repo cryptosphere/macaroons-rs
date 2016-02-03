@@ -33,6 +33,43 @@ fn example_first_party_caveat() -> Caveat {
     Caveat::first_party(Predicate(Vec::from("test = caveat")))
 }
 
+fn example_first_party_caveat_different_prefix() -> Caveat {
+    Caveat::first_party(Predicate(Vec::from("other = test")))
+}
+
+fn verify_caveat(p: &Predicate) -> bool {
+    let mut prefix = p.0.clone();
+    let value = prefix.split_off(7);
+    
+    if prefix != b"test = " {
+        return true;
+    }
+
+    value == b"caveat"
+}
+
+fn verify_wrong_value(p: &Predicate) -> bool {
+    let mut prefix = p.0.clone();
+    let value = prefix.split_off(7);
+    
+    if prefix != b"test = " {
+        return true;
+    }
+
+    value == b"wrong"
+}
+
+fn verify_other(p: &Predicate) -> bool {
+    let mut prefix = p.0.clone();
+    let value = prefix.split_off(7);
+    
+    if prefix != b"other = " {
+        return true;
+    }
+
+    value == b"caveat"
+}
+
 fn example_caveat_key() -> Vec<u8> {
     Vec::from("4; guaranteed random by a fair toss of the dice")
 }
@@ -122,13 +159,19 @@ fn simple_verification() {
 
 #[test]
 fn verifying_predicates() {
-    let token = example_token().add_caveat(&example_first_party_caveat());
+    let token = example_token()
+        .add_caveat(&example_first_party_caveat())
+        .add_caveat(&example_first_party_caveat_different_prefix());
 
-    let matching_verifier = Verifier::new(|_predicate| true);
+    let matching_verifier = Verifier::new(vec![Box::new(verify_caveat)]);
     assert!(matching_verifier.verify(&example_key(), &token));
     assert!(!matching_verifier.verify(&invalid_key(), &token));
-
-    let non_matching_verifier = Verifier::new(|_predicate| false);
+    
+    let non_matching_verifier = Verifier::new(vec![Box::new(verify_wrong_value)]);
     assert!(!non_matching_verifier.verify(&example_key(), &token));
     assert!(!non_matching_verifier.verify(&invalid_key(), &token));
+
+    let multiple_verifier = Verifier::new(vec![Box::new(verify_caveat), Box::new(verify_other)]);
+    assert!(multiple_verifier.verify(&example_key(), &token));
+
 }
