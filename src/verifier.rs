@@ -1,22 +1,45 @@
 pub use token::Token;
 pub use caveat::{Caveat, Predicate};
 
-pub struct Verifier<F> {
-    pub matcher: F,
+pub type CaveatVerifier = Fn(&Predicate) -> bool;
+
+pub struct Verifier {
+    pub matchers: Vec<Box<CaveatVerifier>>,
 }
 
-impl<F> Verifier<F> where F: Fn(&Predicate) -> bool
-{
-    pub fn new(matcher: F) -> Verifier<F> {
-        Verifier { matcher: matcher }
+impl Verifier {
+    pub fn new(matchers: Vec<Box<CaveatVerifier>>) -> Verifier {
+        Verifier { matchers: matchers }
     }
-
+        
     pub fn verify(&self, key: &Vec<u8>, token: &Token) -> bool {
         if !token.verify(&key) {
             return false;
         }
 
-        let matcher = &self.matcher;
-        token.caveats.iter().all(|caveat| matcher(&Predicate(caveat.caveat_id.clone())))
+        for c in &token.caveats {
+            let verified = match c.verification_id {
+                None => self.verify_first_party(c),
+                _ => self.verify_third_party()
+            };
+            if verified == false {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn verify_first_party(&self, c: &Caveat) -> bool {
+        let matchers = &self.matchers;
+        for m in matchers {
+            if m(&Predicate(c.caveat_id.clone())) {
+                return true;
+            }
+        }
+        false
+    }
+
+    fn verify_third_party(&self) -> bool {
+        unimplemented!();
     }
 }

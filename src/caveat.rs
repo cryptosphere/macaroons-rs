@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Clone)]
 pub struct Predicate(pub Vec<u8>);
 
@@ -31,5 +33,12 @@ impl Caveat {
             verification_id: None,
             caveat_location: Some(caveat_location),
         }
+    }
+}
+
+impl fmt::Display for Caveat {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let caveat_id = String::from_utf8(self.caveat_id.clone()).unwrap();
+        write!(f, "{}", &caveat_id)
     }
 }
