@@ -25,10 +25,6 @@ fn example_id() -> Vec<u8> {
     Vec::from("we used our secret key")
 }
 
-fn example_uri() -> Vec<u8> {
-    Vec::from("http://mybank/")
-}
-
 fn example_first_party_caveat() -> Caveat {
     Caveat::first_party(Predicate(Vec::from("test = caveat")))
 }
@@ -89,18 +85,17 @@ fn example_third_party_caveat() -> Caveat {
 }
 
 fn example_token() -> Token {
-    Token::new(&example_key(), example_id(), example_uri())
+    Token::new(&example_key(), example_id())
 }
 
 fn example_serialized_with_first_party_caveats() -> Vec<u8> {
-    Vec::from("MDAxY2xvY2F0aW9uIGh0dHA6Ly9teWJhbmsvCjAwMjZpZGVudGlmaWVyIHdlIHVzZWQgb3VyIHNlY3JldCB\
-               rZXkKMDAxNmNpZCB0ZXN0ID0gY2F2ZWF0CjAwMmZzaWduYXR1cmUgGXusegRK8zMyhluSZuJtSTvdZopmDk\
-               TYjOGpmMI9vWcK")
+    Vec::from("MDAyNmlkZW50aWZpZXIgd2UgdXNlZCBvdXIgc2VjcmV0IGtleQowMDE2Y2lkIHRlc3QgPSBjYXZlYXQKMDA\
+               yZnNpZ25hdHVyZSAZe6x6BErzMzKGW5Jm4m1JO91mimYORNiM4amYwj29Zwo")
 }
 
 #[test]
 fn empty_macaroon_signature() {
-    let token = Token::new(&example_key(), example_id(), example_uri());
+    let token = Token::new(&example_key(), example_id());
     let Tag(actual_tag) = token.tag;
 
     assert_eq!(EMPTY_TAG, actual_tag)
@@ -141,7 +136,6 @@ fn binary_serialization() {
 fn binary_deserialization() {
     let token = Token::deserialize(example_serialized_with_first_party_caveats()).unwrap();
 
-    assert_eq!(example_uri(), token.location);
     assert_eq!(example_id(), token.identifier);
 
     let Tag(actual_tag) = token.tag;
