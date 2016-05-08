@@ -15,6 +15,7 @@ const PACKET_PREFIX_LENGTH: usize = 4;
 const MAX_PACKET_LENGTH: usize = 65535;
 
 pub struct Token {
+    pub location: Vec<u8>,
     pub identifier: Vec<u8>,
     pub caveats: Vec<Caveat>,
     pub tag: Tag,
@@ -27,11 +28,12 @@ struct Packet {
 }
 
 impl Token {
-    pub fn new(key: &Vec<u8>, identifier: Vec<u8>) -> Token {
+    pub fn new(key: &Vec<u8>, identifier: Vec<u8>, location: Vec<u8>) -> Token {
         let Tag(personalized_key) = authenticate(&key, &Key(*KEY_GENERATOR));
         let tag = authenticate(&identifier, &Key(personalized_key));
 
         Token {
+            location: location,
             identifier: identifier,
             caveats: Vec::new(),
             tag: tag,
@@ -39,6 +41,7 @@ impl Token {
     }
 
     pub fn deserialize(macaroon: Vec<u8>) -> Result<Token, &'static str> {
+        let mut location: Option<Vec<u8>> = None;
         let mut identifier: Option<Vec<u8>> = None;
         let mut caveats: Vec<Caveat> = Vec::new();
         let mut tag: Option<Tag> = None;
@@ -59,7 +62,7 @@ impl Token {
             index += packet.length;
 
             match &packet.id[..] {
-                b"location" => (), // Ignored as malleable data for informational use only
+                b"location" => location = Some(packet.value),
                 b"identifier" => identifier = Some(packet.value),
                 b"cid" => caveats.push(Caveat::first_party(Predicate(packet.value))),
                 b"vid" | b"cl" => {
@@ -101,15 +104,18 @@ impl Token {
             }
         }
 
+        if location == None {
+            return Err("no 'location' found");
+        }
         if identifier == None {
             return Err("no 'identifier' found");
         }
-
         if tag == None {
             return Err("no 'signature' found");
         }
 
         let token = Token {
+            location: location.unwrap(),
             identifier: identifier.unwrap(),
             caveats: caveats,
             tag: tag.unwrap(),
@@ -189,13 +195,14 @@ impl Token {
 
         Token {
             identifier: self.identifier.clone(),
+            location: self.location.clone(),
             caveats: new_caveats,
             tag: new_tag,
         }
     }
 
     pub fn verify(&self, key: &Vec<u8>) -> bool {
-        let mut verify_token = Token::new(&key, self.identifier.clone());
+        let mut verify_token = Token::new(&key, self.identifier.clone(), self.location.clone());
 
         for caveat in &self.caveats {
             verify_token = verify_token.add_caveat(&caveat)
@@ -208,6 +215,7 @@ impl Token {
         // TODO: estimate capacity and use Vec::with_capacity
         let mut result: Vec<u8> = Vec::new();
 
+        Token::packetize(&mut result, "location", &self.location);
         Token::packetize(&mut result, "identifier", &self.identifier);
 
         for caveat in self.caveats.iter() {
