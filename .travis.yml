@@ -1,4 +1,7 @@
 language: rust
+branches:
+  only:
+    - master
 
 # necessary for `travis-cargo coveralls --no-sudo`
 addons:
