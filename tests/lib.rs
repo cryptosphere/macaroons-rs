@@ -89,7 +89,7 @@ fn example_third_party_caveat() -> Caveat {
 }
 
 fn example_token() -> Token {
-    Token::new(&example_key(), example_id(), example_uri())
+    Token::new(&example_key(), example_id(), Some(example_uri()))
 }
 
 fn example_serialized_with_first_party_caveats() -> Vec<u8> {
@@ -100,7 +100,7 @@ fn example_serialized_with_first_party_caveats() -> Vec<u8> {
 
 #[test]
 fn empty_macaroon_signature() {
-    let token = Token::new(&example_key(), example_id(), example_uri());
+    let token = Token::new(&example_key(), example_id(), Some(example_uri()));
     let Tag(actual_tag) = token.tag;
 
     assert_eq!(EMPTY_TAG, actual_tag)
@@ -141,7 +141,7 @@ fn binary_serialization() {
 fn binary_deserialization() {
     let token = Token::deserialize(example_serialized_with_first_party_caveats()).unwrap();
 
-    assert_eq!(example_uri(), token.location);
+    assert_eq!(example_uri(), token.location.unwrap());
     assert_eq!(example_id(), token.identifier);
 
     let Tag(actual_tag) = token.tag;

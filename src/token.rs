@@ -15,7 +15,7 @@ const PACKET_PREFIX_LENGTH: usize = 4;
 const MAX_PACKET_LENGTH: usize = 65535;
 
 pub struct Token {
-    pub location: Vec<u8>,
+    pub location: Option<Vec<u8>>,
     pub identifier: Vec<u8>,
     pub caveats: Vec<Caveat>,
     pub tag: Tag,
@@ -28,7 +28,7 @@ struct Packet {
 }
 
 impl Token {
-    pub fn new(key: &Vec<u8>, identifier: Vec<u8>, location: Vec<u8>) -> Token {
+    pub fn new(key: &Vec<u8>, identifier: Vec<u8>, location: Option<Vec<u8>>) -> Token {
         let Tag(personalized_key) = authenticate(&key, &Key(*KEY_GENERATOR));
         let tag = authenticate(&identifier, &Key(personalized_key));
 
@@ -104,9 +104,6 @@ impl Token {
             }
         }
 
-        if location == None {
-            return Err("no 'location' found");
-        }
         if identifier == None {
             return Err("no 'identifier' found");
         }
@@ -115,7 +112,7 @@ impl Token {
         }
 
         let token = Token {
-            location: location.unwrap(),
+            location: location,
             identifier: identifier.unwrap(),
             caveats: caveats,
             tag: tag.unwrap(),
@@ -215,7 +212,11 @@ impl Token {
         // TODO: estimate capacity and use Vec::with_capacity
         let mut result: Vec<u8> = Vec::new();
 
-        Token::packetize(&mut result, "location", &self.location);
+        match self.location.clone() {
+          Some(location) => Token::packetize(&mut result, "location", &location),
+          None => (),
+        }
+
         Token::packetize(&mut result, "identifier", &self.identifier);
 
         for caveat in self.caveats.iter() {
