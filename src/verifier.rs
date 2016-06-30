@@ -12,7 +12,7 @@ impl Verifier {
         Verifier { matchers: matchers }
     }
         
-    pub fn verify(&self, key: &Vec<u8>, token: &Token) -> bool {
+    pub fn verify(&self, key: &[u8], token: &Token) -> bool {
         if !token.verify(&key) {
             return false;
         }
