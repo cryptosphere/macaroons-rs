@@ -28,7 +28,7 @@ struct Packet {
 }
 
 impl Token {
-    pub fn new(key: &Vec<u8>, identifier: Vec<u8>, location: Option<Vec<u8>>) -> Token {
+    pub fn new(key: &[u8], identifier: Vec<u8>, location: Option<Vec<u8>>) -> Token {
         let Tag(personalized_key) = authenticate(&key, &Key(*KEY_GENERATOR));
         let tag = authenticate(&identifier, &Key(personalized_key));
 
@@ -121,7 +121,7 @@ impl Token {
         Ok(token)
     }
 
-    fn depacketize(data: &Vec<u8>, index: usize) -> Result<Packet, &'static str> {
+    fn depacketize(data: &[u8], index: usize) -> Result<Packet, &'static str> {
         // TODO: parse this length without involving any UTF-8 conversions
         let length_str = match std::str::from_utf8(&data[index..index + PACKET_PREFIX_LENGTH]) {
             Ok(string) => string,
@@ -198,7 +198,7 @@ impl Token {
         }
     }
 
-    pub fn verify(&self, key: &Vec<u8>) -> bool {
+    pub fn verify(&self, key: &[u8]) -> bool {
         let mut verify_token = Token::new(&key, self.identifier.clone(), self.location.clone());
 
         for caveat in &self.caveats {
@@ -239,7 +239,7 @@ impl Token {
         result.to_base64(base64::URL_SAFE).into_bytes()
     }
 
-    fn packetize(result: &mut Vec<u8>, field: &str, value: &Vec<u8>) {
+    fn packetize(result: &mut Vec<u8>, field: &str, value: &[u8]) {
         let field_bytes: Vec<u8> = Vec::from(field);
         let packet_length = PACKET_PREFIX_LENGTH + field_bytes.len() + value.len() + 2;
 
