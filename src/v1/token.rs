@@ -213,8 +213,8 @@ impl Token {
         let mut result: Vec<u8> = Vec::new();
 
         match self.location.clone() {
-          Some(location) => Token::packetize(&mut result, "location", &location),
-          None => (),
+            Some(location) => Token::packetize(&mut result, "location", &location),
+            None => (),
         }
 
         Token::packetize(&mut result, "identifier", &self.identifier);

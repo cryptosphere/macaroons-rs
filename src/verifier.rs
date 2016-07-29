@@ -1,4 +1,4 @@
-pub use token::Token;
+pub use v1::token::Token;
 pub use caveat::{Caveat, Predicate};
 
 pub type CaveatVerifier = Fn(&Predicate) -> bool;
@@ -11,7 +11,7 @@ impl Verifier {
     pub fn new(matchers: Vec<Box<CaveatVerifier>>) -> Verifier {
         Verifier { matchers: matchers }
     }
-        
+
     pub fn verify(&self, key: &[u8], token: &Token) -> bool {
         if !token.verify(&key) {
             return false;
@@ -20,7 +20,7 @@ impl Verifier {
         for c in &token.caveats {
             let verified = match c.verification_id {
                 None => self.verify_first_party(c),
-                _ => self.verify_third_party()
+                _ => self.verify_third_party(),
             };
             if verified == false {
                 return false;
