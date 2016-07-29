@@ -4,7 +4,10 @@
 extern crate sodiumoxide;
 extern crate rustc_serialize;
 
-pub mod token;
+pub mod v1 {
+    pub mod token;
+}
+
 pub mod caveat;
 pub mod verifier;
 
