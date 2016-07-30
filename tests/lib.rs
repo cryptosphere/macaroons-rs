@@ -1,7 +1,9 @@
 extern crate macaroons;
-pub use macaroons::v1::{Token, Tag};
-pub use macaroons::caveat::{Caveat, Predicate};
-pub use macaroons::verifier::Verifier;
+
+use macaroons::caveat::{Caveat, Predicate};
+use macaroons::token::Token;
+use macaroons::v1::V1Token;
+use macaroons::verifier::Verifier;
 
 const EMPTY_TAG: [u8; 32] = [0xe3, 0xd9, 0xe0, 0x29, 0x08, 0x52, 0x6c, 0x4c, 0x00, 0x39, 0xae,
                              0x15, 0x11, 0x41, 0x15, 0xd9, 0x7f, 0xdd, 0x68, 0xbf, 0x2b, 0xa3,
@@ -88,8 +90,8 @@ fn example_third_party_caveat() -> Caveat {
                         example_third_party_caveat_location())
 }
 
-fn example_token() -> Token {
-    Token::new(&example_key(), example_id(), Some(example_uri()))
+fn example_token() -> V1Token {
+    V1Token::new(&example_key(), example_id(), Some(example_uri()))
 }
 
 fn example_serialized_with_first_party_caveats() -> Vec<u8> {
@@ -100,17 +102,14 @@ fn example_serialized_with_first_party_caveats() -> Vec<u8> {
 
 #[test]
 fn empty_macaroon_signature() {
-    let token = Token::new(&example_key(), example_id(), Some(example_uri()));
-    let Tag(actual_tag) = token.tag;
-
-    assert_eq!(EMPTY_TAG, actual_tag)
+    let token = V1Token::new(&example_key(), example_id(), Some(example_uri()));
+    assert_eq!(EMPTY_TAG, token.tag)
 }
 
 #[test]
 fn signature_with_first_party_caveat() {
     let token = example_token().add_caveat(&example_first_party_caveat());
-    let Tag(actual_tag) = token.tag;
-    assert_eq!(EXPECTED_TAG_WITH_FIRST_PARTY_CAVEATS, actual_tag)
+    assert_eq!(EXPECTED_TAG_WITH_FIRST_PARTY_CAVEATS, token.tag)
 }
 
 #[test]
@@ -121,7 +120,7 @@ fn signature_with_third_party_caveat() {
     token = token.add_caveat(&example_third_party_caveat());
 
     let token_serialized = token.serialize();
-    let parsed_token = Token::deserialize(token_serialized).unwrap();
+    let parsed_token = V1Token::deserialize(token_serialized).unwrap();
     let third_party_caveat = &parsed_token.caveats[1];
 
     assert_eq!(third_party_caveat.caveat_id,
@@ -139,13 +138,12 @@ fn binary_serialization() {
 
 #[test]
 fn binary_deserialization() {
-    let token = Token::deserialize(example_serialized_with_first_party_caveats()).unwrap();
+    let token = V1Token::deserialize(example_serialized_with_first_party_caveats()).unwrap();
 
     assert_eq!(example_uri(), token.location.unwrap());
     assert_eq!(example_id(), token.identifier);
 
-    let Tag(actual_tag) = token.tag;
-    assert_eq!(EXPECTED_TAG_WITH_FIRST_PARTY_CAVEATS, actual_tag)
+    assert_eq!(EXPECTED_TAG_WITH_FIRST_PARTY_CAVEATS, token.tag)
 }
 
 #[test]
