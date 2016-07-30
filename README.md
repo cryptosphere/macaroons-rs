@@ -41,6 +41,17 @@ Additional planned work:
 
 * Nom-based parser (may require API changes)
 
+## V2 Format Support
+
+[The Macaroons format is changing!](https://groups.google.com/forum/#!msg/macaroons/EIDUZQoelq8/KnbVukmGBQAJ)
+
+A specification for a new, more compact "V2" format has been published.
+
+This library has begun to implement it. In the process, the API is changing
+so that it can support both the old and new formats.
+
+Pardon our dust.
+
 ## Help and Discussion
 
 Interested in Macaroons? Join the Macaroons Google Group:

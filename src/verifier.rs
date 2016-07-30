@@ -1,5 +1,6 @@
-pub use v1::Token;
-pub use caveat::{Caveat, Predicate};
+use caveat::{Caveat, Predicate};
+use token::Token;
+use v1::V1Token;
 
 pub type CaveatVerifier = Fn(&Predicate) -> bool;
 
@@ -12,7 +13,7 @@ impl Verifier {
         Verifier { matchers: matchers }
     }
 
-    pub fn verify(&self, key: &[u8], token: &Token) -> bool {
+    pub fn verify(&self, key: &[u8], token: &V1Token) -> bool {
         if !token.verify(&key) {
             return false;
         }

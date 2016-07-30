@@ -6,6 +6,7 @@ extern crate rustc_serialize;
 
 pub mod v1;
 pub mod caveat;
+pub mod token;
 pub mod verifier;
 
 // Macaroons personalize the HMAC key using the string
