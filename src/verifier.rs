@@ -1,4 +1,4 @@
-pub use v1::token::Token;
+pub use v1::Token;
 pub use caveat::{Caveat, Predicate};
 
 pub type CaveatVerifier = Fn(&Predicate) -> bool;

@@ -1,5 +1,5 @@
 extern crate macaroons;
-pub use macaroons::v1::token::{Token, Tag};
+pub use macaroons::v1::{Token, Tag};
 pub use macaroons::caveat::{Caveat, Predicate};
 pub use macaroons::verifier::Verifier;
 
