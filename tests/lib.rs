@@ -119,7 +119,7 @@ fn signature_with_third_party_caveat() {
     token = token.add_caveat(&example_first_party_caveat());
     token = token.add_caveat(&example_third_party_caveat());
 
-    let token_serialized = token.serialize();
+    let token_serialized = token.serialize().unwrap();
     let parsed_token = V1Token::deserialize(token_serialized).unwrap();
     let third_party_caveat = &parsed_token.caveats[1];
 
@@ -133,7 +133,7 @@ fn signature_with_third_party_caveat() {
 fn binary_serialization() {
     let token = example_token().add_caveat(&example_first_party_caveat());
     assert_eq!(example_serialized_with_first_party_caveats(),
-               token.serialize());
+               token.serialize().unwrap());
 }
 
 #[test]
