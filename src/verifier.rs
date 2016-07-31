@@ -29,9 +29,8 @@ impl Verifier {
     }
 
     fn verify_first_party(&self, c: &Caveat) -> Result<()> {
-        let matchers = &self.matchers;
-        for m in matchers {
-            if m(&Predicate(c.caveat_id.clone())) {
+        for matcher in &self.matchers {
+            if matcher(&c.caveat_id) {
                 return Ok(());
             }
         }

@@ -32,15 +32,15 @@ fn example_uri() -> Vec<u8> {
 }
 
 fn example_first_party_caveat() -> Caveat {
-    Caveat::first_party(Predicate(Vec::from("test = caveat")))
+    Caveat::first_party(Vec::from("test = caveat"))
 }
 
 fn example_first_party_caveat_different_prefix() -> Caveat {
-    Caveat::first_party(Predicate(Vec::from("other = test")))
+    Caveat::first_party(Vec::from("other = test"))
 }
 
 fn verify_caveat(p: &Predicate) -> bool {
-    let mut prefix = p.0.clone();
+    let mut prefix = p.clone();
     let value = prefix.split_off(7);
     
     if prefix != b"test = " {
@@ -51,7 +51,7 @@ fn verify_caveat(p: &Predicate) -> bool {
 }
 
 fn verify_wrong_value(p: &Predicate) -> bool {
-    let mut prefix = p.0.clone();
+    let mut prefix = p.clone();
     let value = prefix.split_off(7);
     
     if prefix != b"test = " {
@@ -62,7 +62,7 @@ fn verify_wrong_value(p: &Predicate) -> bool {
 }
 
 fn verify_other(p: &Predicate) -> bool {
-    let mut prefix = p.0.clone();
+    let mut prefix = p.clone();
     let value = prefix.split_off(7);
     
     if prefix != b"other = " {

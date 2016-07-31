@@ -7,7 +7,7 @@ use sodiumoxide::crypto::secretbox;
 use sodiumoxide::utils;
 
 use super::KEY_GENERATOR;
-use caveat::{Caveat, Predicate};
+use caveat::Caveat;
 use error::{Error, Result};
 use token::Token;
 
@@ -119,7 +119,7 @@ impl Token for V1Token {
             index += packet.length;
 
             match &packet.id[..] {
-                b"cid" => caveats.push(Caveat::first_party(Predicate(packet.value))),
+                b"cid" => caveats.push(Caveat::first_party(packet.value)),
                 b"vid" | b"cl" => {
                     match caveats.pop() {
                         Some(caveat) => {
