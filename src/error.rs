@@ -3,6 +3,8 @@ use std::error::Error as StdError;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum Error {
+    VerificationFailed,
+    FirstPartyCaveatFailed,
     Base64,
     PacketLength,
     SignatureLength,
@@ -22,6 +24,8 @@ impl fmt::Display for Error {
 impl StdError for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::VerificationFailed => "the token is inauthentic",
+            Error::FirstPartyCaveatFailed => "a first-party caveat failed to verify",
             Error::Base64 => "unable to decode Base64",
             Error::PacketLength => "unable to decode packet length, or packet too long",
             Error::SignatureLength => "signature length incorrect",

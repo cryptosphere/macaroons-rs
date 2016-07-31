@@ -150,9 +150,8 @@ fn binary_deserialization() {
 fn simple_verification() {
     let token = example_token().add_caveat(&example_first_party_caveat());
 
-    assert!(token.verify(&example_key()), "verifies with valid key");
-    assert!(!token.verify(&invalid_key()),
-            "doesn't verify with invalid key");
+    assert!(token.verify(&example_key()).is_ok(), "verifies with valid key");
+    assert!(token.verify(&invalid_key()).is_err(), "doesn't verify with invalid key");
 }
 
 #[test]
@@ -162,14 +161,14 @@ fn verifying_predicates() {
         .add_caveat(&example_first_party_caveat_different_prefix());
 
     let matching_verifier = Verifier::new(vec![Box::new(verify_caveat)]);
-    assert!(matching_verifier.verify(&example_key(), &token));
-    assert!(!matching_verifier.verify(&invalid_key(), &token));
+    assert!(matching_verifier.verify(&example_key(), &token).is_ok());
+    assert!(matching_verifier.verify(&invalid_key(), &token).is_err());
     
     let non_matching_verifier = Verifier::new(vec![Box::new(verify_wrong_value)]);
-    assert!(!non_matching_verifier.verify(&example_key(), &token));
-    assert!(!non_matching_verifier.verify(&invalid_key(), &token));
+    assert!(non_matching_verifier.verify(&example_key(), &token).is_err());
+    assert!(non_matching_verifier.verify(&invalid_key(), &token).is_err());
 
     let multiple_verifier = Verifier::new(vec![Box::new(verify_caveat), Box::new(verify_other)]);
-    assert!(multiple_verifier.verify(&example_key(), &token));
+    assert!(multiple_verifier.verify(&example_key(), &token).is_ok());
 
 }

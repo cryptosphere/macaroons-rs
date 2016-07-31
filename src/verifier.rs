@@ -1,4 +1,5 @@
 use caveat::{Caveat, Predicate};
+use error::{Result, Error};
 use token::Token;
 use v1::V1Token;
 
@@ -13,34 +14,32 @@ impl Verifier {
         Verifier { matchers: matchers }
     }
 
-    pub fn verify(&self, key: &[u8], token: &V1Token) -> bool {
-        if !token.verify(&key) {
-            return false;
-        }
+    pub fn verify(&self, key: &[u8], token: &V1Token) -> Result<()> {
+        try!(token.verify(&key));
 
         for c in &token.caveats {
-            let verified = match c.verification_id {
-                None => self.verify_first_party(c),
-                _ => self.verify_third_party(),
-            };
-            if verified == false {
-                return false;
+            if c.verification_id == None {
+                try!(self.verify_first_party(c));
+            } else {
+                try!(self.verify_third_party());
             }
         }
-        true
+
+        Ok(())
     }
 
-    fn verify_first_party(&self, c: &Caveat) -> bool {
+    fn verify_first_party(&self, c: &Caveat) -> Result<()> {
         let matchers = &self.matchers;
         for m in matchers {
             if m(&Predicate(c.caveat_id.clone())) {
-                return true;
+                return Ok(());
             }
         }
-        false
+        
+        Err(Error::FirstPartyCaveatFailed)
     }
 
-    fn verify_third_party(&self) -> bool {
+    fn verify_third_party(&self) -> Result<()> {
         unimplemented!();
     }
 }

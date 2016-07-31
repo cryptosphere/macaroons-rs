@@ -9,5 +9,5 @@ pub trait Token {
     fn deserialize(macaroon: Vec<u8>) -> Result<Self> where Self: Sized;
     fn serialize(&self) -> Result<Vec<u8>>;
     fn add_caveat(&self, caveat: &Caveat) -> Self;
-    fn verify(&self, key: &[u8]) -> bool;
+    fn verify(&self, key: &[u8]) -> Result<()>;
 }
