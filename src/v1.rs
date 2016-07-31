@@ -14,8 +14,8 @@ const PACKET_PREFIX_LENGTH: usize = 4;
 const MAX_PACKET_LENGTH: usize = 65535;
 
 pub struct V1Token {
-    pub location: Option<Vec<u8>>,
     pub identifier: Vec<u8>,
+    pub location: Option<Vec<u8>>,
     pub caveats: Vec<Caveat>,
     pub tag: [u8; TAGBYTES],
 }
@@ -52,8 +52,9 @@ impl V1Token {
 
         let mut packet_bytes = data[index + PACKET_PREFIX_LENGTH..index + packet_length].to_vec();
 
-        let pos =
-            try!(packet_bytes.iter().position(|&byte| byte == b' ').ok_or(Error::MalformedPacket));
+        let pos = try!(packet_bytes.iter()
+            .position(|&byte| byte == b' ')
+            .ok_or(Error::MalformedPacket));
 
         let (id, value_arr) = packet_bytes.split_at_mut(pos);
         let mut value = value_arr.to_vec();
@@ -85,23 +86,38 @@ impl Token for V1Token {
     }
 
     fn deserialize(macaroon: Vec<u8>) -> Result<V1Token> {
-        let mut location: Option<Vec<u8>> = None;
-        let mut identifier: Option<Vec<u8>> = None;
-        let mut caveats: Vec<Caveat> = Vec::new();
-        let mut tag: Option<Tag> = None;
-
         let token_data = try!(macaroon.from_base64().map_err(|_e| Error::Base64));
-
         let mut index: usize = 0;
 
+        // Parse the (optional location and) identifier packets
+        let packet1 = try!(V1Token::depacketize(&token_data, index));
+        index += packet1.length;
+
+        let (identifier, location) = match &packet1.id[..] {
+            b"identifier" => (packet1.value, None),
+            b"location" => {
+                let packet2 = try!(V1Token::depacketize(&token_data, index));
+                index += packet2.length;
+
+                if &packet2.id[..] != b"identifier" {
+                    return Err(Error::MissingIdentifier);
+                }
+
+                (packet2.value, Some(packet1.value))
+            }
+            _ => return Err(Error::MissingIdentifier),
+        };
+
+        let mut caveats: Vec<Caveat> = Vec::new();
+        let mut tag: Option<[u8; TAGBYTES]> = None;
+
+        // Parse caveats
         while index < token_data.len() {
             let packet = try!(V1Token::depacketize(&token_data, index));
 
             index += packet.length;
 
             match &packet.id[..] {
-                b"location" => location = Some(packet.value),
-                b"identifier" => identifier = Some(packet.value),
                 b"cid" => caveats.push(Caveat::first_party(Predicate(packet.value))),
                 b"vid" | b"cl" => {
                     match caveats.pop() {
@@ -113,7 +129,7 @@ impl Token for V1Token {
                             match &packet.id[..] {
                                 b"vid" => verification_id = Some(packet.value),
                                 b"cl" => caveat_location = Some(packet.value),
-                                _ => (),
+                                _ => return Err(Error::PacketOrdering),
                             }
 
                             caveats.push(Caveat {
@@ -127,23 +143,22 @@ impl Token for V1Token {
                     }
                 }
                 b"signature" => {
+                    // Make sure signature is the last packet
+                    if index != token_data.len() {
+                        return Err(Error::PacketOrdering);
+                    }
+
                     if packet.value.len() != TAGBYTES {
                         return Err(Error::SignatureLength);
                     }
 
                     let mut signature_bytes = [0u8; TAGBYTES];
-                    for (src, dst) in packet.value.iter().zip(signature_bytes.iter_mut()) {
-                        *dst = *src;
-                    }
+                    signature_bytes.copy_from_slice(&packet.value);
 
-                    tag = Some(Tag(signature_bytes))
+                    tag = Some(signature_bytes);
                 }
                 _ => return Err(Error::UnknownPacketType),
             }
-        }
-
-        if identifier == None {
-            return Err(Error::MissingIdentifier);
         }
 
         if tag == None {
@@ -151,10 +166,10 @@ impl Token for V1Token {
         }
 
         let token = V1Token {
+            identifier: identifier,
             location: location,
-            identifier: identifier.unwrap(),
             caveats: caveats,
-            tag: tag.unwrap().0,
+            tag: tag.unwrap(),
         };
 
         Ok(token)

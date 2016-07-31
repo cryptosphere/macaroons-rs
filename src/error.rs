@@ -28,7 +28,7 @@ impl StdError for Error {
             Error::MalformedPacket => "packet not properly structured",
             Error::PacketOrdering => "packet types are not in the right order",
             Error::UnknownPacketType => "packet found with unknown type",
-            Error::MissingIdentifier => "no 'identifier' found in token",
+            Error::MissingIdentifier => "no 'identifier' found at beginning of token",
             Error::MissingSignature => "no 'signature' found in token",
         }
     }
