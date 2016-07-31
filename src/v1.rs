@@ -4,6 +4,7 @@ use rustc_serialize::base64::{self, FromBase64, ToBase64};
 
 use sodiumoxide::crypto::auth::hmacsha256::{self, Tag, Key, State, TAGBYTES};
 use sodiumoxide::crypto::secretbox;
+use sodiumoxide::utils;
 
 use super::KEY_GENERATOR;
 use caveat::{Caveat, Predicate};
@@ -250,13 +251,18 @@ impl Token for V1Token {
         }
     }
 
-    fn verify(&self, key: &[u8]) -> bool {
+    fn verify(&self, key: &[u8]) -> Result<()> {
         let mut verify_token = V1Token::new(&key, self.identifier.clone(), self.location.clone());
 
         for caveat in &self.caveats {
             verify_token = verify_token.add_caveat(&caveat)
         }
 
-        verify_token.tag == self.tag
+        // Constant-time comparison function
+        if utils::memcmp(&verify_token.tag, &self.tag) {
+            Ok(())
+        } else {
+            Err(Error::VerificationFailed)
+        }
     }
 }
