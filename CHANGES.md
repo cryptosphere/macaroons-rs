@@ -1,3 +1,9 @@
+## 0.3.1 (2016-07-31)
+
+* [#15](https://github.com/cryptosphere/rust-macaroons/pull/15)
+  Get rid of Predicate tuple struct.
+  ([@tarcieri])
+
 ## 0.3.0 (2016-07-31)
 
 * [#14](https://github.com/cryptosphere/rust-macaroons/pull/14)
