@@ -1,13 +1,13 @@
 use std;
 
-use caveat::{Caveat, Predicate};
-
 use rustc_serialize::base64::{self, FromBase64, ToBase64};
 
 use sodiumoxide::crypto::auth::hmacsha256::{self, Tag, Key, State, TAGBYTES};
 use sodiumoxide::crypto::secretbox;
 
-use KEY_GENERATOR;
+use super::KEY_GENERATOR;
+use caveat::{Caveat, Predicate};
+use error::{Error, Result};
 use token::Token;
 
 const PACKET_PREFIX_LENGTH: usize = 4;
@@ -27,45 +27,40 @@ struct Packet {
 }
 
 impl V1Token {
-    fn packetize(result: &mut Vec<u8>, field: &str, value: &[u8]) {
+    fn packetize(result: &mut Vec<u8>, field: &str, value: &[u8]) -> Result<()> {
         let field_bytes: Vec<u8> = Vec::from(field);
         let packet_length = PACKET_PREFIX_LENGTH + field_bytes.len() + value.len() + 2;
 
         if packet_length > MAX_PACKET_LENGTH {
-            panic!("packet too large to serialize");
+            return Err(Error::PacketLength);
         }
 
         let pkt_line = format!("{:04x}{} ", packet_length, field).into_bytes();
         result.extend(pkt_line.into_iter());
         result.extend(value.clone().into_iter());
         result.push(b'\n');
+
+        Ok(())
     }
 
-    fn depacketize(data: &[u8], index: usize) -> Result<Packet, &'static str> {
-        let length_str = match std::str::from_utf8(&data[index..index + PACKET_PREFIX_LENGTH]) {
-            Ok(string) => string,
-            _ => return Err("couldn't stringify packet length"),
-        };
+    fn depacketize(data: &[u8], index: usize) -> Result<Packet> {
+        let length_str = try!(std::str::from_utf8(&data[index..index + PACKET_PREFIX_LENGTH])
+            .map_err(|_e| Error::PacketLength));
 
-        let packet_length: usize = match i16::from_str_radix(length_str, 16) {
-            Ok(length) => length as usize,
-            _ => return Err("couldn't parse packet length"),
-        };
+        let packet_length = try!(usize::from_str_radix(length_str, 16)
+            .map_err(|_e| Error::PacketLength));
 
         let mut packet_bytes = data[index + PACKET_PREFIX_LENGTH..index + packet_length].to_vec();
 
-        let pos = match packet_bytes.iter().position(|&byte| byte == b' ') {
-            Some(i) => i,
-            None => return Err("malformed packet"),
-        };
+        let pos =
+            try!(packet_bytes.iter().position(|&byte| byte == b' ').ok_or(Error::MalformedPacket));
 
         let (id, value_arr) = packet_bytes.split_at_mut(pos);
         let mut value = value_arr.to_vec();
         value.remove(0);
 
-        match value.pop().unwrap() {
-            b'\n' => (),
-            _ => return Err("packet not newline terminated"),
+        if try!(value.pop().ok_or(Error::MalformedPacket)) != b'\n' {
+            return Err(Error::MalformedPacket);
         }
 
         Ok(Packet {
@@ -89,24 +84,18 @@ impl Token for V1Token {
         }
     }
 
-    fn deserialize(macaroon: Vec<u8>) -> Result<V1Token, &'static str> {
+    fn deserialize(macaroon: Vec<u8>) -> Result<V1Token> {
         let mut location: Option<Vec<u8>> = None;
         let mut identifier: Option<Vec<u8>> = None;
         let mut caveats: Vec<Caveat> = Vec::new();
         let mut tag: Option<Tag> = None;
 
-        let token_data = match macaroon.from_base64() {
-            Ok(bytes) => bytes,
-            _ => return Err("couldn't parse base64"),
-        };
+        let token_data = try!(macaroon.from_base64().map_err(|_e| Error::Base64));
 
         let mut index: usize = 0;
 
         while index < token_data.len() {
-            let packet = match V1Token::depacketize(&token_data, index) {
-                Ok(p) => p,
-                Err(reason) => return Err(reason),
-            };
+            let packet = try!(V1Token::depacketize(&token_data, index));
 
             index += packet.length;
 
@@ -134,12 +123,12 @@ impl Token for V1Token {
                                 caveat_location: caveat_location,
                             })
                         }
-                        None => return Err("invalid third party caveat field ordering"),
+                        None => return Err(Error::PacketOrdering),
                     }
                 }
                 b"signature" => {
                     if packet.value.len() != TAGBYTES {
-                        return Err("invalid signature length");
+                        return Err(Error::SignatureLength);
                     }
 
                     let mut signature_bytes = [0u8; TAGBYTES];
@@ -149,16 +138,16 @@ impl Token for V1Token {
 
                     tag = Some(Tag(signature_bytes))
                 }
-                _ => return Err("unrecognized packet type"),
+                _ => return Err(Error::UnknownPacketType),
             }
         }
 
         if identifier == None {
-            return Err("no 'identifier' found");
+            return Err(Error::MissingIdentifier);
         }
 
         if tag == None {
-            return Err("no 'signature' found");
+            return Err(Error::MissingSignature);
         }
 
         let token = V1Token {
@@ -169,6 +158,37 @@ impl Token for V1Token {
         };
 
         Ok(token)
+    }
+
+    fn serialize(&self) -> Result<Vec<u8>> {
+        // TODO: estimate capacity and use Vec::with_capacity
+        let mut result: Vec<u8> = Vec::new();
+
+        if self.location.is_some() {
+            try!(V1Token::packetize(&mut result, "location", &self.location.clone().unwrap()));
+        }
+
+        try!(V1Token::packetize(&mut result, "identifier", &self.identifier));
+
+        for caveat in &self.caveats {
+            try!(V1Token::packetize(&mut result, "cid", &caveat.caveat_id));
+
+            if caveat.verification_id.is_some() {
+                try!(V1Token::packetize(&mut result,
+                                        "vid",
+                                        &caveat.verification_id.clone().unwrap()));
+            }
+
+            if caveat.caveat_location.is_some() {
+                try!(V1Token::packetize(&mut result,
+                                        "cl",
+                                        &caveat.caveat_location.clone().unwrap()));
+            }
+        }
+
+        try!(V1Token::packetize(&mut result, "signature", &self.tag.to_vec()));
+
+        Ok(result.to_base64(base64::URL_SAFE).into_bytes())
     }
 
     fn add_caveat(&self, caveat: &Caveat) -> V1Token {
@@ -188,10 +208,12 @@ impl Token for V1Token {
 
                 let mut caveat_authenticator = State::init(&key_bytes);
 
-                let Tag(caveat_id_tag) = hmacsha256::authenticate(&new_caveat.caveat_id, &Key(key_bytes));
+                let Tag(caveat_id_tag) = hmacsha256::authenticate(&new_caveat.caveat_id,
+                                                                  &Key(key_bytes));
                 caveat_authenticator.update(&caveat_id_tag);
 
-                let Tag(verification_id_tag) = hmacsha256::authenticate(&verification_id, &Key(key_bytes));
+                let Tag(verification_id_tag) = hmacsha256::authenticate(&verification_id,
+                                                                        &Key(key_bytes));
                 caveat_authenticator.update(&verification_id_tag);
 
                 new_caveat.verification_id = Some(verification_id);
@@ -221,35 +243,5 @@ impl Token for V1Token {
         }
 
         verify_token.tag == self.tag
-    }
-
-    fn serialize(&self) -> Vec<u8> {
-        // TODO: estimate capacity and use Vec::with_capacity
-        let mut result: Vec<u8> = Vec::new();
-
-        match self.location.clone() {
-            Some(location) => V1Token::packetize(&mut result, "location", &location),
-            None => (),
-        }
-
-        V1Token::packetize(&mut result, "identifier", &self.identifier);
-
-        for caveat in self.caveats.iter() {
-            V1Token::packetize(&mut result, "cid", &caveat.caveat_id);
-
-            match caveat.verification_id.clone() {
-                Some(vid) => V1Token::packetize(&mut result, "vid", &vid),
-                None => (),
-            }
-
-            match caveat.caveat_location.clone() {
-                Some(cl) => V1Token::packetize(&mut result, "cl", &cl),
-                None => (),
-            }
-        }
-
-        V1Token::packetize(&mut result, "signature", &self.tag.to_vec());
-
-        result.to_base64(base64::URL_SAFE).into_bytes()
     }
 }

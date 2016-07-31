@@ -4,10 +4,12 @@
 extern crate sodiumoxide;
 extern crate rustc_serialize;
 
-pub mod v1;
 pub mod caveat;
+pub mod error;
 pub mod token;
 pub mod verifier;
+
+pub mod v1;
 
 // Macaroons personalize the HMAC key using the string
 // "macaroons-key-generator" padded to 32-bytes with zeroes
