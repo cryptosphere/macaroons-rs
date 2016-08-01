@@ -252,7 +252,7 @@ impl Token for V1Token {
         }
     }
 
-    fn verify<V: Verifier>(&self, key: &[u8], verifier: V) -> Result<()> {
+    fn authenticate<V: Verifier>(&self, key: &[u8], verifier: V) -> Result<()> {
         try!(self.verify_integrity(&key));
 
         for caveat in &self.caveats {
