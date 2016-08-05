@@ -1,8 +1,11 @@
-Macaroons for Rust
-==================
-[![Build Status](https://travis-ci.org/cryptosphere/rust-macaroons.svg?branch=master)](https://travis-ci.org/cryptosphere/rust-macaroons)
-[![Latest Version](https://img.shields.io/crates/v/macaroons.svg)](https://crates.io/crates/macaroons)
-[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cryptosphere/rust-macaroons/blob/master/LICENSE)
+# Macaroons (for Rust!) [![Latest Version][crate-image]][crate-link] [![Build Status][build-image]][build-link] [![Apache 2 licensed][license-image]][license-link]
+
+[crate-image]: https://img.shields.io/crates/v/macaroons.svg
+[crate-link]: https://crates.io/crates/macaroons
+[build-image]: https://travis-ci.org/cryptosphere/rust-macaroons.svg?branch=master
+[build-link]: https://travis-ci.org/cryptosphere/rust-macaroons
+[license-image]: https://img.shields.io/badge/license-MIT-blue.svg
+[license-link]: https://github.com/cryptosphere/rust-macaroons/blob/master/LICENSE
 
 A better kind of cookie.
 
