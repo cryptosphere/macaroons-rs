@@ -10,6 +10,7 @@ use super::KEY_GENERATOR;
 use caveat::Caveat;
 use error::{Error, Result};
 use token::Token;
+use verifier::Verifier;
 
 const PACKET_PREFIX_LENGTH: usize = 4;
 const MAX_PACKET_LENGTH: usize = 65535;
@@ -251,7 +252,25 @@ impl Token for V1Token {
         }
     }
 
-    fn verify(&self, key: &[u8]) -> Result<()> {
+    fn verify<V: Verifier>(&self, key: &[u8], verifier: V) -> Result<()> {
+        try!(self.authenticate_without_verifying(&key));
+
+        for caveat in &self.caveats {
+            if caveat.verification_id == None {
+                if !verifier.verify_first_party(&caveat.caveat_id) {
+                    return Err(Error::VerificationFailed);
+                }
+            } else {
+                if !verifier.verify_third_party(&caveat.caveat_id) {
+                    return Err(Error::VerificationFailed);
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    fn authenticate_without_verifying(&self, key: &[u8]) -> Result<()> {
         let mut verify_token = V1Token::new(&key, self.identifier.clone(), self.location.clone());
 
         for caveat in &self.caveats {

@@ -1,9 +1,9 @@
 extern crate macaroons;
 
-use macaroons::caveat::{Caveat, Predicate};
+use macaroons::caveat::Caveat;
 use macaroons::token::Token;
 use macaroons::v1::V1Token;
-use macaroons::verifier::Verifier;
+use macaroons::verifier::{Func, LinkVerifier};
 
 const EMPTY_TAG: [u8; 32] = [0xe3, 0xd9, 0xe0, 0x29, 0x08, 0x52, 0x6c, 0x4c, 0x00, 0x39, 0xae,
                              0x15, 0x11, 0x41, 0x15, 0xd9, 0x7f, 0xdd, 0x68, 0xbf, 0x2b, 0xa3,
@@ -39,37 +39,34 @@ fn example_first_party_caveat_different_prefix() -> Caveat {
     Caveat::first_party(Vec::from("other = test"))
 }
 
-fn verify_caveat(p: &Predicate) -> bool {
-    let mut prefix = p.clone();
-    let value = prefix.split_off(7);
+fn verify_caveat(predicate: &str) -> bool {
+    let (prefix, value) = predicate.split_at(7);
     
-    if prefix != b"test = " {
+    if prefix != "test = " {
         return true;
     }
 
-    value == b"caveat"
+    value == "caveat"
 }
 
-fn verify_wrong_value(p: &Predicate) -> bool {
-    let mut prefix = p.clone();
-    let value = prefix.split_off(7);
+fn verify_wrong_value(predicate: &str) -> bool {
+    let (prefix, value) = predicate.split_at(7);
     
-    if prefix != b"test = " {
+    if prefix != "test = " {
         return true;
     }
 
-    value == b"wrong"
+    value == "wrong"
 }
 
-fn verify_other(p: &Predicate) -> bool {
-    let mut prefix = p.clone();
-    let value = prefix.split_off(7);
+fn verify_other(predicate: &str) -> bool {
+    let (prefix, value) = predicate.split_at(7);
     
-    if prefix != b"other = " {
+    if prefix != "other = " {
         return true;
     }
 
-    value == b"caveat"
+    value == "caveat"
 }
 
 fn example_caveat_key() -> Vec<u8> {
@@ -150,8 +147,8 @@ fn binary_deserialization() {
 fn simple_verification() {
     let token = example_token().add_caveat(&example_first_party_caveat());
 
-    assert!(token.verify(&example_key()).is_ok(), "verifies with valid key");
-    assert!(token.verify(&invalid_key()).is_err(), "doesn't verify with invalid key");
+    assert!(token.authenticate_without_verifying(&example_key()).is_ok(), "verifies with valid key");
+    assert!(token.authenticate_without_verifying(&invalid_key()).is_err(), "doesn't verify with invalid key");
 }
 
 #[test]
@@ -160,15 +157,14 @@ fn verifying_predicates() {
         .add_caveat(&example_first_party_caveat())
         .add_caveat(&example_first_party_caveat_different_prefix());
 
-    let matching_verifier = Verifier::new(vec![Box::new(verify_caveat)]);
-    assert!(matching_verifier.verify(&example_key(), &token).is_ok());
-    assert!(matching_verifier.verify(&invalid_key(), &token).is_err());
+    let matching_verifier = Func(verify_caveat);
+    assert!(token.verify(&example_key(), &matching_verifier).is_ok());
+    assert!(token.verify(&invalid_key(), &matching_verifier).is_err());
     
-    let non_matching_verifier = Verifier::new(vec![Box::new(verify_wrong_value)]);
-    assert!(non_matching_verifier.verify(&example_key(), &token).is_err());
-    assert!(non_matching_verifier.verify(&invalid_key(), &token).is_err());
+    let non_matching_verifier = Func(verify_wrong_value);
+    assert!(token.verify(&example_key(), &non_matching_verifier).is_err());
+    assert!(token.verify(&invalid_key(), &non_matching_verifier).is_err());
 
-    let multiple_verifier = Verifier::new(vec![Box::new(verify_caveat), Box::new(verify_other)]);
-    assert!(multiple_verifier.verify(&example_key(), &token).is_ok());
-
+    let multiple_verifier = Func(verify_caveat).link(Func(verify_other));
+    assert!(token.verify(&example_key(), &multiple_verifier).is_ok());
 }
