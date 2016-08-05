@@ -147,8 +147,8 @@ fn binary_deserialization() {
 fn simple_verification() {
     let token = example_token().add_caveat(&example_first_party_caveat());
 
-    assert!(token.verify_integrity(&example_key()).is_ok(), "verifies with valid key");
-    assert!(token.verify_integrity(&invalid_key()).is_err(), "doesn't verify with invalid key");
+    assert!(token.authenticate_without_verifying(&example_key()).is_ok(), "verifies with valid key");
+    assert!(token.authenticate_without_verifying(&invalid_key()).is_err(), "doesn't verify with invalid key");
 }
 
 #[test]
@@ -158,13 +158,13 @@ fn verifying_predicates() {
         .add_caveat(&example_first_party_caveat_different_prefix());
 
     let matching_verifier = Func(verify_caveat);
-    assert!(token.authenticate(&example_key(), &matching_verifier).is_ok());
-    assert!(token.authenticate(&invalid_key(), &matching_verifier).is_err());
+    assert!(token.verify(&example_key(), &matching_verifier).is_ok());
+    assert!(token.verify(&invalid_key(), &matching_verifier).is_err());
     
     let non_matching_verifier = Func(verify_wrong_value);
-    assert!(token.authenticate(&example_key(), &non_matching_verifier).is_err());
-    assert!(token.authenticate(&invalid_key(), &non_matching_verifier).is_err());
+    assert!(token.verify(&example_key(), &non_matching_verifier).is_err());
+    assert!(token.verify(&invalid_key(), &non_matching_verifier).is_err());
 
     let multiple_verifier = Func(verify_caveat).link(Func(verify_other));
-    assert!(token.authenticate(&example_key(), &multiple_verifier).is_ok());
+    assert!(token.verify(&example_key(), &multiple_verifier).is_ok());
 }

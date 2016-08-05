@@ -252,8 +252,8 @@ impl Token for V1Token {
         }
     }
 
-    fn authenticate<V: Verifier>(&self, key: &[u8], verifier: V) -> Result<()> {
-        try!(self.verify_integrity(&key));
+    fn verify<V: Verifier>(&self, key: &[u8], verifier: V) -> Result<()> {
+        try!(self.authenticate_without_verifying(&key));
 
         for caveat in &self.caveats {
             if caveat.verification_id == None {
@@ -270,7 +270,7 @@ impl Token for V1Token {
         Ok(())
     }
 
-    fn verify_integrity(&self, key: &[u8]) -> Result<()> {
+    fn authenticate_without_verifying(&self, key: &[u8]) -> Result<()> {
         let mut verify_token = V1Token::new(&key, self.identifier.clone(), self.location.clone());
 
         for caveat in &self.caveats {
