@@ -5,6 +5,7 @@ homepage    = "https://github.com/cryptosphere/rust-macaroons"
 repository  = "https://github.com/cryptosphere/rust-macaroons.git"
 readme      = "README.md"
 keywords    = ["cookies", "authorization", "credentials"]
+categories  = ["authentication"]
 license     = "MIT"
 version     = "0.3.1"
 authors     = ["Tony Arcieri <bascule@gmail.com>"]
