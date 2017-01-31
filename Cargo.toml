@@ -7,7 +7,7 @@ readme      = "README.md"
 keywords    = ["cookies", "authorization", "credentials"]
 categories  = ["authentication"]
 license     = "MIT"
-version     = "0.3.1"
+version     = "0.3.2"
 authors     = ["Tony Arcieri <bascule@gmail.com>"]
 
 [features]

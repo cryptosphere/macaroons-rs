@@ -77,5 +77,5 @@ Coming soon!
 
 ## License
 
-Copyright (c) 2015-2016 Tony Arcieri. Distributed under the MIT License.
+Copyright (c) 2015-2017 Tony Arcieri. Distributed under the MIT License.
 See LICENSE.txt for further details.

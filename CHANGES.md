@@ -1,3 +1,7 @@
+## 0.3.2 (2017-01-31)
+
+* Add "authentication" category to Cargo.toml.
+
 ## 0.3.1 (2016-07-31)
 
 * [#15](https://github.com/cryptosphere/rust-macaroons/pull/15)
