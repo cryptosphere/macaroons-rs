@@ -1,8 +1,8 @@
 [package]
 name        = "macaroons"
 description = "Cookie-like bearer credentials with caveats for distributed authorization"
-homepage    = "https://github.com/cryptosphere/rust-macaroons"
-repository  = "https://github.com/cryptosphere/rust-macaroons.git"
+homepage    = "https://github.com/cryptosphere/macaroons-rs"
+repository  = "https://github.com/cryptosphere/macaroons-rs.git"
 readme      = "README.md"
 keywords    = ["cookies", "authorization", "credentials"]
 categories  = ["authentication"]

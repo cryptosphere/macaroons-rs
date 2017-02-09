@@ -2,10 +2,10 @@
 
 [crate-image]: https://img.shields.io/crates/v/macaroons.svg
 [crate-link]: https://crates.io/crates/macaroons
-[build-image]: https://travis-ci.org/cryptosphere/rust-macaroons.svg?branch=master
-[build-link]: https://travis-ci.org/cryptosphere/rust-macaroons
+[build-image]: https://travis-ci.org/cryptosphere/macaroons-rs.svg?branch=master
+[build-link]: https://travis-ci.org/cryptosphere/macaroons-rs
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
-[license-link]: https://github.com/cryptosphere/rust-macaroons/blob/master/LICENSE
+[license-link]: https://github.com/cryptosphere/macaroons-rs/blob/master/LICENSE
 
 A better kind of cookie.
 

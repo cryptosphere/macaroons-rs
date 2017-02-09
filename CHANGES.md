@@ -1,40 +1,40 @@
 ## 0.3.1 (2016-07-31)
 
-* [#15](https://github.com/cryptosphere/rust-macaroons/pull/15)
+* [#15](https://github.com/cryptosphere/macaroons-rs/pull/15)
   Get rid of Predicate tuple struct.
   ([@tarcieri])
 
 ## 0.3.0 (2016-07-31)
 
-* [#14](https://github.com/cryptosphere/rust-macaroons/pull/14)
+* [#14](https://github.com/cryptosphere/macaroons-rs/pull/14)
   Return Results for verification (instead of bool).
   ([@tarcieri])
 
-* [#13](https://github.com/cryptosphere/rust-macaroons/pull/13)
+* [#13](https://github.com/cryptosphere/macaroons-rs/pull/13)
   Return errors for out-of-order V1 packets.
   ([@tarcieri])
 
-* [#12](https://github.com/cryptosphere/rust-macaroons/pull/12)
+* [#12](https://github.com/cryptosphere/macaroons-rs/pull/12)
   Error type.
   ([@tarcieri])
 
-* [#10](https://github.com/cryptosphere/rust-macaroons/pull/10)
+* [#10](https://github.com/cryptosphere/macaroons-rs/pull/10)
   Token trait.
   ([@tarcieri])
 
-* [#8](https://github.com/cryptosphere/rust-macaroons/pull/8)
+* [#8](https://github.com/cryptosphere/macaroons-rs/pull/8)
   Namespace Token as v1::V1Token.
   ([@tarcieri])
 
-* [#6](https://github.com/cryptosphere/rust-macaroons/pull/6)
+* [#6](https://github.com/cryptosphere/macaroons-rs/pull/6)
   Use &[u8] instead of &Vec<u8>.
   ([@panicbit])
 
-* [#5](https://github.com/cryptosphere/rust-macaroons/pull/5)
+* [#5](https://github.com/cryptosphere/macaroons-rs/pull/5)
   Make locations an Option.
   ([@tarcieri])
 
-* [#3](https://github.com/cryptosphere/rust-macaroons/pull/3)
+* [#3](https://github.com/cryptosphere/macaroons-rs/pull/3)
   Initial verifier type.
   ([@ecordell])
 
