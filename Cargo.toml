@@ -10,10 +10,7 @@ license     = "MIT"
 version     = "0.3.1"
 authors     = ["Tony Arcieri <bascule@gmail.com>"]
 
-[features]
-nightly = []
-
 [dependencies]
-sodiumoxide     = ">= 0.0.10"
-libsodium-sys   = ">= 0.0.10"
-rustc-serialize = ">= 0.3.19"
+sodiumoxide     = "^0"
+libsodium-sys   = "^0"
+rustc-serialize = "^0.3"
