@@ -1,3 +1,11 @@
+## 0.3.3 (2017-02-08)
+
+* Update project links to use "macaroons-rs"
+
+## 0.3.2 (2017-01-31)
+
+* Add "authentication" category to Cargo.toml.
+
 ## 0.3.1 (2016-07-31)
 
 * [#15](https://github.com/cryptosphere/macaroons-rs/pull/15)
