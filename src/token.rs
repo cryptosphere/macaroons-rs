@@ -6,7 +6,13 @@ use error::Result;
 use verifier::Verifier;
 
 pub trait Token {
-    fn new(key: &[u8], identifier: Vec<u8>, location: Option<Vec<u8>>) -> Self;
+    fn new(key: &[u8], identifier: Vec<u8>) -> Self
+        where Self: Sized
+    {
+        Self::new_with_location(key, identifier, None)
+    }
+    fn new_with_location(key: &[u8], identifier: Vec<u8>, location: Option<Vec<u8>>) -> Self;
+
     fn deserialize(macaroon: Vec<u8>) -> Result<Self> where Self: Sized;
     fn serialize(&self) -> Result<Vec<u8>>;
     fn add_caveat(&self, caveat: &Caveat) -> Self;

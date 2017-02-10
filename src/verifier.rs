@@ -2,8 +2,12 @@ use std::sync::Arc;
 use std::rc::Rc;
 
 pub trait Verifier {
-    fn verify_first_party(&self, _caveat: &[u8]) -> bool { false }
-    fn verify_third_party(&self, _caveat: &[u8]) -> bool { false }
+    fn verify_first_party(&self, _caveat: &[u8]) -> bool {
+        false
+    }
+    fn verify_third_party(&self, _caveat: &[u8]) -> bool {
+        false
+    }
 }
 
 // Pointer primitives
@@ -60,24 +64,26 @@ impl<V: Verifier> Verifier for Arc<V> {
 
 // Func
 
-pub struct Func<F: Fn(&str) -> bool>(pub F);
+pub struct Func<F: Fn(&str) -> bool>(// &str) -> bool>(// &str) -> bool>(// &str) -> bool>(
+                                     pub F);
 
-impl<F> Verifier for Func<F> where
-    F: Fn(&str) -> bool
+impl<F> Verifier for Func<F>
+    where F: Fn(&str) -> bool
 {
     fn verify_first_party(&self, caveat: &[u8]) -> bool {
         ::std::str::from_utf8(&caveat)
-        .map(&self.0)
-        .unwrap_or(false)
+            .map(&self.0)
+            .unwrap_or(false)
     }
 }
 
 // ByteFunc
 
-pub struct ByteFunc<F: Fn(&[u8]) -> bool>(pub F);
+pub struct ByteFunc<F: Fn(&[u8]) -> bool>(// &[u8]) -> bool>(// &[u8]) -> bool>(// &[u8]) -> bool>(
+                                          pub F);
 
-impl<F> Verifier for ByteFunc<F> where
-    F: Fn(&[u8]) -> bool
+impl<F> Verifier for ByteFunc<F>
+    where F: Fn(&[u8]) -> bool
 {
     fn verify_first_party(&self, caveat: &[u8]) -> bool {
         (self.0)(caveat)
@@ -102,13 +108,11 @@ impl<V1: Verifier, V2: Verifier> LinkedVerifier<V1, V2> {
 
 impl<V1: Verifier, V2: Verifier> Verifier for LinkedVerifier<V1, V2> {
     fn verify_first_party(&self, caveat: &[u8]) -> bool {
-           self.verifier1.verify_first_party(caveat)
-        || self.verifier2.verify_first_party(caveat)
+        self.verifier1.verify_first_party(caveat) || self.verifier2.verify_first_party(caveat)
     }
 
     fn verify_third_party(&self, caveat: &[u8]) -> bool {
-           self.verifier1.verify_third_party(caveat)
-        || self.verifier2.verify_third_party(caveat)
+        self.verifier1.verify_third_party(caveat) || self.verifier2.verify_third_party(caveat)
     }
 }
 
@@ -123,10 +127,9 @@ impl<Tag: AsRef<[u8]>, Value: AsRef<[u8]>> Verifier for Eq<Tag, Value> {
         let value = self.1.as_ref();
         let len = tag.len() + op.len() + value.len();
 
-        len == caveat.len()
-        && &caveat[0                    .. tag.len()           ] == tag
-        && &caveat[tag.len()            .. tag.len() + op.len()] == op
-        && &caveat[tag.len() + op.len() ..                     ] == value
+        len == caveat.len() && &caveat[0..tag.len()] == tag &&
+        &caveat[tag.len()..tag.len() + op.len()] == op &&
+        &caveat[tag.len() + op.len()..] == value
     }
 }
 

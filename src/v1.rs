@@ -75,7 +75,7 @@ impl V1Token {
 }
 
 impl Token for V1Token {
-    fn new(key: &[u8], identifier: Vec<u8>, location: Option<Vec<u8>>) -> V1Token {
+    fn new_with_location(key: &[u8], identifier: Vec<u8>, location: Option<Vec<u8>>) -> V1Token {
         let Tag(personalized_key) = hmacsha256::authenticate(&key, &Key(*KEY_GENERATOR));
         let Tag(tag) = hmacsha256::authenticate(&identifier, &Key(personalized_key));
 
@@ -271,7 +271,8 @@ impl Token for V1Token {
     }
 
     fn authenticate_without_verifying(&self, key: &[u8]) -> Result<()> {
-        let mut verify_token = V1Token::new(&key, self.identifier.clone(), self.location.clone());
+        let mut verify_token =
+            V1Token::new_with_location(&key, self.identifier.clone(), self.location.clone());
 
         for caveat in &self.caveats {
             verify_token = verify_token.add_caveat(&caveat)

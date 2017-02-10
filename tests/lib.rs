@@ -9,11 +9,10 @@ const EMPTY_TAG: [u8; 32] = [0xe3, 0xd9, 0xe0, 0x29, 0x08, 0x52, 0x6c, 0x4c, 0x0
                              0x15, 0x11, 0x41, 0x15, 0xd9, 0x7f, 0xdd, 0x68, 0xbf, 0x2b, 0xa3,
                              0x79, 0xb3, 0x42, 0xaa, 0xf0, 0xf6, 0x17, 0xd0, 0x55, 0x2f];
 
-const EXPECTED_TAG_WITH_FIRST_PARTY_CAVEATS: [u8; 32] = [0x19, 0x7b, 0xac, 0x7a, 0x04, 0x4a, 0xf3,
-                                                         0x33, 0x32, 0x86, 0x5b, 0x92, 0x66, 0xe2,
-                                                         0x6d, 0x49, 0x3b, 0xdd, 0x66, 0x8a, 0x66,
-                                                         0x0e, 0x44, 0xd8, 0x8c, 0xe1, 0xa9, 0x98,
-                                                         0xc2, 0x3d, 0xbd, 0x67];
+const EXPECTED_TAG_WITH_FIRST_PARTY_CAVEATS: [u8; 32] =
+    [0x19, 0x7b, 0xac, 0x7a, 0x04, 0x4a, 0xf3, 0x33, 0x32, 0x86, 0x5b, 0x92, 0x66, 0xe2, 0x6d,
+     0x49, 0x3b, 0xdd, 0x66, 0x8a, 0x66, 0x0e, 0x44, 0xd8, 0x8c, 0xe1, 0xa9, 0x98, 0xc2, 0x3d,
+     0xbd, 0x67];
 
 fn example_key() -> Vec<u8> {
     Vec::from("this is our super secret key; only we should know it")
@@ -41,7 +40,7 @@ fn example_first_party_caveat_different_prefix() -> Caveat {
 
 fn verify_caveat(predicate: &str) -> bool {
     let (prefix, value) = predicate.split_at(7);
-    
+
     if prefix != "test = " {
         return true;
     }
@@ -51,7 +50,7 @@ fn verify_caveat(predicate: &str) -> bool {
 
 fn verify_wrong_value(predicate: &str) -> bool {
     let (prefix, value) = predicate.split_at(7);
-    
+
     if prefix != "test = " {
         return true;
     }
@@ -61,7 +60,7 @@ fn verify_wrong_value(predicate: &str) -> bool {
 
 fn verify_other(predicate: &str) -> bool {
     let (prefix, value) = predicate.split_at(7);
-    
+
     if prefix != "other = " {
         return true;
     }
@@ -88,7 +87,7 @@ fn example_third_party_caveat() -> Caveat {
 }
 
 fn example_token() -> V1Token {
-    V1Token::new(&example_key(), example_id(), Some(example_uri()))
+    V1Token::new_with_location(&example_key(), example_id(), Some(example_uri()))
 }
 
 fn example_serialized_with_first_party_caveats() -> Vec<u8> {
@@ -99,7 +98,7 @@ fn example_serialized_with_first_party_caveats() -> Vec<u8> {
 
 #[test]
 fn empty_macaroon_signature() {
-    let token = V1Token::new(&example_key(), example_id(), Some(example_uri()));
+    let token = V1Token::new_with_location(&example_key(), example_id(), Some(example_uri()));
     assert_eq!(EMPTY_TAG, token.tag)
 }
 
@@ -147,8 +146,10 @@ fn binary_deserialization() {
 fn simple_verification() {
     let token = example_token().add_caveat(&example_first_party_caveat());
 
-    assert!(token.authenticate_without_verifying(&example_key()).is_ok(), "verifies with valid key");
-    assert!(token.authenticate_without_verifying(&invalid_key()).is_err(), "doesn't verify with invalid key");
+    assert!(token.authenticate_without_verifying(&example_key()).is_ok(),
+            "verifies with valid key");
+    assert!(token.authenticate_without_verifying(&invalid_key()).is_err(),
+            "doesn't verify with invalid key");
 }
 
 #[test]
@@ -160,7 +161,7 @@ fn verifying_predicates() {
     let matching_verifier = Func(verify_caveat);
     assert!(token.verify(&example_key(), &matching_verifier).is_ok());
     assert!(token.verify(&invalid_key(), &matching_verifier).is_err());
-    
+
     let non_matching_verifier = Func(verify_wrong_value);
     assert!(token.verify(&example_key(), &non_matching_verifier).is_err());
     assert!(token.verify(&invalid_key(), &non_matching_verifier).is_err());
